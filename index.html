@@ -74,6 +74,7 @@
   .section { display: none; animation: fadeIn 0.2s ease; }
   .section.active { display: flex; flex-direction: column; height: 100%; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
   /* CARDS */
   .card { background: rgba(20,8,8,0.82); backdrop-filter:blur(6px); border: 1px solid rgba(204,31,31,0.2); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 18px; }
@@ -216,6 +217,8 @@
       <button class="nav-item" onclick="showSection('comunicazioni',this)"><i class="ti ti-speakerphone"></i><span>Comunicazioni</span></button>
       <button class="nav-item" onclick="showSection('galleria',this)"><i class="ti ti-photo"></i><span>Galleria</span></button>
       <button class="nav-item" onclick="showSection('statistiche',this)"><i class="ti ti-chart-bar"></i><span>Statistiche</span></button>
+      <button class="nav-item" onclick="showSection('obiettivi',this)"><i class="ti ti-target"></i><span>Obiettivi</span></button>
+      <button class="nav-item" onclick="showSection('ia',this)"><i class="ti ti-robot"></i><span>Assistente IA</span></button>
       <button class="nav-item" onclick="showSection('impostazioni',this)"><i class="ti ti-settings"></i><span>Impostazioni</span></button>
     </div>
     <div class="sidebar-footer">
@@ -351,6 +354,55 @@
       </div>
       <div style="flex:1;overflow-y:auto;padding:24px">
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px" id="stats-grid"></div>
+      </div>
+    </div>
+
+    <!-- OBIETTIVI -->
+    <div id="sec-obiettivi" class="section">
+      <div class="topbar">
+        <div><div class="page-title">Obiettivi</div><div class="page-subtitle">Obiettivi stagionali e trimestrali</div></div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="openModal('modal-obiettivo')"><i class="ti ti-plus"></i> Aggiungi obiettivo</button>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:24px">
+        <div class="two-col" style="margin-bottom:18px">
+          <div>
+            <div class="section-title" style="margin-bottom:12px">🏆 Obiettivi Stagionali</div>
+            <div id="obj-stagionali"></div>
+          </div>
+          <div>
+            <div class="section-title" style="margin-bottom:12px">📅 Obiettivi Trimestrali</div>
+            <div id="obj-trimestrali"></div>
+          </div>
+        </div>
+        <div>
+          <div class="section-title" style="margin-bottom:12px">👤 Obiettivi Individuali</div>
+          <div id="obj-individuali"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASSISTENTE IA -->
+    <div id="sec-ia" class="section">
+      <div class="topbar">
+        <div><div class="page-title">Assistente IA</div><div class="page-subtitle">Powered by Claude AI</div></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:24px;gap:16px">
+        <!-- Quick actions -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="iaQuickPrompt('crea_allenamento')"><i class="ti ti-calendar-plus"></i> Crea allenamento</button>
+          <button class="btn" onclick="iaQuickPrompt('consiglia_esercizi')"><i class="ti ti-barbell"></i> Consiglia esercizi</button>
+          <button class="btn" onclick="iaQuickPrompt('analizza_stats')"><i class="ti ti-chart-bar"></i> Analizza statistiche</button>
+          <button class="btn" onclick="iaQuickPrompt('suggerisci_obiettivi')"><i class="ti ti-target"></i> Suggerisci obiettivi</button>
+        </div>
+        <!-- Chat area -->
+        <div id="ia-messages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;min-height:200px;max-height:400px;padding:4px"></div>
+        <!-- Input -->
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <textarea id="ia-input" placeholder="Chiedimi qualcosa... es. Crea un allenamento di 60 minuti sui passaggi per 12 bambini di 8 anni" style="flex:1;resize:none;min-height:60px;max-height:120px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendToIA()}"></textarea>
+          <button class="btn btn-primary" onclick="sendToIA()" style="padding:10px 16px;height:60px"><i class="ti ti-send"></i></button>
+        </div>
       </div>
     </div>
 
@@ -552,6 +604,60 @@
   </div>
 </div>
 
+<!-- OBIETTIVO MODAL -->
+<div class="modal-overlay" id="modal-obiettivo">
+  <div class="modal" style="width:460px">
+    <div class="modal-title" id="obj-modal-title">Aggiungi obiettivo</div>
+    <input type="hidden" id="obj-edit-key" value="">
+    <div class="form-group">
+      <label class="form-label">Tipo obiettivo</label>
+      <select id="obj-tipo" onchange="toggleObjGiocatore()">
+        <option value="stagionale">Stagionale (squadra)</option>
+        <option value="trimestrale">Trimestrale (squadra)</option>
+        <option value="individuale">Individuale (giocatore)</option>
+      </select>
+    </div>
+    <div class="form-group" id="obj-giocatore-group" style="display:none">
+      <label class="form-label">Giocatore</label>
+      <select id="obj-giocatore"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Titolo obiettivo *</label>
+      <input type="text" id="obj-titolo" placeholder="Es. Migliorare il pressing alto">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrizione</label>
+      <textarea id="obj-desc" placeholder="Descrivi l'obiettivo in dettaglio..."></textarea>
+    </div>
+    <div class="form-grid2">
+      <div class="form-group">
+        <label class="form-label">Scadenza</label>
+        <input type="date" id="obj-scadenza">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priorità</label>
+        <select id="obj-priorita">
+          <option value="alta">Alta</option>
+          <option value="media" selected>Media</option>
+          <option value="bassa">Bassa</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Stato</label>
+      <select id="obj-stato">
+        <option value="in_corso">In corso</option>
+        <option value="completato">Completato ✅</option>
+        <option value="non_raggiunto">Non raggiunto ❌</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-obiettivo')">Annulla</button>
+      <button class="btn btn-primary" id="obj-save-btn" onclick="saveObiettivo()">Salva</button>
+    </div>
+  </div>
+</div>
+
 <!-- CHIUDI STAGIONE MODAL -->
 <div class="modal-overlay" id="modal-chiudi-stagione">
   <div class="modal" style="width:440px">
@@ -750,6 +856,7 @@ listen('exercises','exercises');
 listen('news','news');
 listen('gallery','gallery');
 listen('presenze','presenze');
+listen('obiettivi','obiettivi');
 onValue(ref(db, 'settings'), snap => {
   if(snap.val()) { state.settings = snap.val(); renderSettings(); }
   document.getElementById('loading-screen').style.display = 'none';
@@ -999,6 +1106,7 @@ function renderAll() {
   window.renderPresenze();
   renderCalendar();
   renderStatistiche();
+  renderObiettivi();
 }
 
 // CRUD
@@ -1356,6 +1464,8 @@ window.showSection = (id,btn) => {
   if(id==='presenze') window.renderPresenze();
   if(id==='statistiche') renderStatistiche();
   if(id==='impostazioni') renderStagioniArchivio();
+  if(id==='obiettivi') renderObiettivi();
+  if(id==='ia') renderIAMessages();
 };
 window.openModal = id=>document.getElementById(id).classList.add('open');
 window.closeModal = id=>document.getElementById(id).classList.remove('open');
@@ -1511,6 +1621,194 @@ window.openStatsDetail = pKey => {
   document.getElementById('sd-part-tot').textContent = st.totPartite;
   openModal('modal-stats-detail');
 };
+
+// ============================================================
+// OBIETTIVI
+// ============================================================
+window.toggleObjGiocatore = () => {
+  const tipo = document.getElementById('obj-tipo').value;
+  const grp = document.getElementById('obj-giocatore-group');
+  grp.style.display = tipo === 'individuale' ? '' : 'none';
+  if(tipo === 'individuale') {
+    const sel = document.getElementById('obj-giocatore');
+    sel.innerHTML = Object.entries(state.players||{}).map(([k,v])=>`<option value="${k}">${v.nome}</option>`).join('');
+  }
+};
+
+function renderObiettivi() {
+  const obiettivi = Object.entries(state.obiettivi||{}).map(([k,v])=>({...v,_key:k}));
+  const stagionali = obiettivi.filter(o=>o.tipo==='stagionale');
+  const trimestrali = obiettivi.filter(o=>o.tipo==='trimestrale');
+  const individuali = obiettivi.filter(o=>o.tipo==='individuale');
+
+  const prioritaColor = {alta:'badge-red', media:'badge-amber', bassa:'badge-green'};
+  const statoColor = {in_corso:'badge-blue', completato:'badge-green', non_raggiunto:'badge-red'};
+  const statoLabel = {in_corso:'In corso', completato:'Completato ✅', non_raggiunto:'Non raggiunto ❌'};
+
+  const objCard = o => {
+    const player = o.tipo==='individuale' ? (state.players||{})[o.giocatore] : null;
+    return `<div style="background:rgba(20,8,8,0.82);backdrop-filter:blur(6px);border:1px solid rgba(204,31,31,0.2);border-radius:var(--radius);padding:14px;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <div style="flex:1">
+          ${player?`<div style="font-size:11px;color:var(--text3);margin-bottom:4px">👤 ${player.nome}</div>`:''}
+          <div style="font-size:14px;font-weight:600">${o.titolo}</div>
+          ${o.desc?`<div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">${o.desc}</div>`:''}
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px">
+          <button class="delete-btn" onclick="editObiettivo('${o._key}')"><i class="ti ti-pencil" style="font-size:14px"></i></button>
+          <button class="delete-btn" onclick="window._del('obiettivi','${o._key}')"><i class="ti ti-trash" style="font-size:14px"></i></button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span class="badge ${statoColor[o.stato]||'badge-gray'}">${statoLabel[o.stato]||o.stato}</span>
+        <span class="badge ${prioritaColor[o.priorita]||'badge-gray'}">Priorità ${o.priorita||'media'}</span>
+        ${o.scadenza?`<span class="badge badge-gray"><i class="ti ti-calendar" style="font-size:10px;vertical-align:-1px"></i> ${fmtDate(o.scadenza)}</span>`:''}
+      </div>
+    </div>`;
+  };
+
+  const empty = '<div style="font-size:13px;color:var(--text3);padding:14px;text-align:center">Nessun obiettivo. Aggiungine uno!</div>';
+
+  const elS = document.getElementById('obj-stagionali');
+  const elT = document.getElementById('obj-trimestrali');
+  const elI = document.getElementById('obj-individuali');
+  if(elS) elS.innerHTML = stagionali.length ? stagionali.map(objCard).join('') : empty;
+  if(elT) elT.innerHTML = trimestrali.length ? trimestrali.map(objCard).join('') : empty;
+  if(elI) elI.innerHTML = individuali.length ? individuali.map(objCard).join('') : empty;
+}
+
+window.editObiettivo = key => {
+  const o = (state.obiettivi||{})[key]; if(!o) return;
+  document.getElementById('obj-modal-title').textContent = 'Modifica obiettivo';
+  document.getElementById('obj-edit-key').value = key;
+  document.getElementById('obj-tipo').value = o.tipo||'stagionale';
+  document.getElementById('obj-titolo').value = o.titolo||'';
+  document.getElementById('obj-desc').value = o.desc||'';
+  document.getElementById('obj-scadenza').value = o.scadenza||'';
+  document.getElementById('obj-priorita').value = o.priorita||'media';
+  document.getElementById('obj-stato').value = o.stato||'in_corso';
+  window.toggleObjGiocatore();
+  if(o.tipo==='individuale' && o.giocatore) document.getElementById('obj-giocatore').value = o.giocatore;
+  openModal('modal-obiettivo');
+};
+
+window.saveObiettivo = () => {
+  const titolo = document.getElementById('obj-titolo').value.trim();
+  if(!titolo){alert('Inserisci il titolo');return;}
+  const tipo = document.getElementById('obj-tipo').value;
+  const key = document.getElementById('obj-edit-key').value;
+  const data_obj = {
+    tipo, titolo,
+    desc: document.getElementById('obj-desc').value,
+    scadenza: document.getElementById('obj-scadenza').value,
+    priorita: document.getElementById('obj-priorita').value,
+    stato: document.getElementById('obj-stato').value,
+    giocatore: tipo==='individuale' ? document.getElementById('obj-giocatore').value : '',
+    ts: Date.now()
+  };
+  if(key) { update(ref(db,'obiettivi/'+key), data_obj); toast('Obiettivo aggiornato!'); }
+  else { push(ref(db,'obiettivi'), data_obj); toast('Obiettivo salvato!'); }
+  closeModal('modal-obiettivo');
+  ['obj-titolo','obj-desc','obj-scadenza'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('obj-edit-key').value='';
+};
+
+// ============================================================
+// ASSISTENTE IA
+// ============================================================
+let iaHistory = [];
+
+const iaSystemPrompt = () => {
+  const players = Object.values(state.players||{});
+  const settings = state.settings||{};
+  const exercises = Object.values(state.exercises||{}).map(e=>e.nome).join(', ');
+  return `Sei un assistente esperto di calcio giovanile integrato nel gestionale della squadra ${settings.teamName||'ASD San Giovanni'}, stagione ${settings.stagione||'2025/26'}.
+La squadra ha ${players.length} giocatori. Categorie presenti: ${[...new Set(players.map(p=>p.categoria).filter(Boolean))].join(', ')||'non specificate'}.
+Esercizi disponibili nel database: ${exercises.slice(0,500)}.
+Rispondi sempre in italiano. Sii pratico e conciso. Quando crei allenamenti specifica: titolo, durata totale, lista esercizi con durata e descrizione. Quando suggerisci obiettivi sii specifico per l'età e la categoria.`;
+};
+
+const iaQuickPrompts = {
+  crea_allenamento: 'Crea un allenamento completo di 60 minuti adatto alla nostra squadra. Specifica ogni esercizio con nome, durata e descrizione.',
+  consiglia_esercizi: 'Consiglia 5 esercizi adatti alla nostra squadra scegliendo dal nostro database o suggerendone di nuovi. Spiega perché sono utili.',
+  analizza_stats: `Analizza queste statistiche della nostra squadra e dammi consigli: ${JSON.stringify(Object.values({}).slice(0,5))}`,
+  suggerisci_obiettivi: 'Suggerisci 3 obiettivi stagionali e 3 trimestrali adatti alla nostra categoria. Sii specifico e pratico.'
+};
+
+window.iaQuickPrompt = type => {
+  document.getElementById('ia-input').value = iaQuickPrompts[type]||'';
+  sendToIA();
+};
+
+window.sendToIA = async () => {
+  const input = document.getElementById('ia-input');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value = '';
+
+  // Add user message
+  iaHistory.push({role:'user', content: msg});
+  renderIAMessages();
+
+  // Show loading
+  const loadId = 'ia-loading-'+Date.now();
+  const msgsEl = document.getElementById('ia-messages');
+  msgsEl.innerHTML += `<div id="${loadId}" style="display:flex;gap:10px;align-items:flex-start">
+    <div style="width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-robot" style="color:white;font-size:16px"></i></div>
+    <div style="background:rgba(20,8,8,0.8);border:1px solid rgba(204,31,31,0.2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--text2)">
+      <div style="display:flex;gap:4px;align-items:center"><div style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1s infinite"></div><span>Sto pensando...</span></div>
+    </div>
+  </div>`;
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: iaSystemPrompt(),
+        messages: iaHistory
+      })
+    });
+    const data = await response.json();
+    const reply = data.content?.[0]?.text || 'Errore nella risposta.';
+    iaHistory.push({role:'assistant', content: reply});
+
+    // Remove loading and render
+    const loadEl = document.getElementById(loadId);
+    if(loadEl) loadEl.remove();
+    renderIAMessages();
+  } catch(err) {
+    const loadEl = document.getElementById(loadId);
+    if(loadEl) loadEl.remove();
+    iaHistory.push({role:'assistant', content: 'Errore di connessione. Riprova.'});
+    renderIAMessages();
+  }
+};
+
+function renderIAMessages() {
+  const el = document.getElementById('ia-messages');
+  if(!el) return;
+  if(!iaHistory.length) {
+    el.innerHTML = `<div style="text-align:center;color:var(--text3);font-size:13px;padding:40px 20px">
+      <i class="ti ti-robot" style="font-size:40px;display:block;margin-bottom:12px;opacity:0.4"></i>
+      Ciao! Sono il tuo assistente IA.<br>Puoi chiedermi di creare allenamenti, consigliare esercizi o analizzare le statistiche della squadra.
+    </div>`;
+    return;
+  }
+  el.innerHTML = iaHistory.map(m => m.role==='user'
+    ? `<div style="display:flex;justify-content:flex-end">
+        <div style="background:var(--green);color:white;border-radius:var(--radius);padding:10px 14px;font-size:13px;max-width:80%;line-height:1.5">${m.content.replace(/\n/g,'<br>')}</div>
+      </div>`
+    : `<div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-robot" style="color:white;font-size:16px"></i></div>
+        <div style="background:rgba(20,8,8,0.8);border:1px solid rgba(204,31,31,0.2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--text2);max-width:85%;line-height:1.6;white-space:pre-wrap">${m.content}</div>
+      </div>`
+  ).join('');
+  el.scrollTop = el.scrollHeight;
+}
 
 // ============================================================
 // GESTIONE STAGIONI
