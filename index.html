@@ -2072,3 +2072,98 @@ const origRenderAll = typeof renderAll !== 'undefined' ? renderAll : null;
 </script>
 </body>
 </html>
+<script>
+let editingPlayerId = null;
+
+window.openPlayerModal = (id = null) => {
+    const modal = document.getElementById('modal-player');
+    const title = modal.querySelector('h2');
+    const form = document.getElementById('player-form');
+    
+    if (id) {
+        title.innerText = "Modifica Giocatore";
+        editingPlayerId = id;
+        const players = JSON.parse(localStorage.getItem('players') || '[]');
+        const p = players.find(x => x.id === id);
+        if (p) {
+            document.getElementById('p-name').value = p.name || '';
+            document.getElementById('p-role').value = p.role || 'Portiere';
+            document.getElementById('p-number').value = p.number || '';
+            document.getElementById('p-status').value = p.status || 'Attivo';
+            document.getElementById('p-note').value = p.note || '';
+        }
+    } else {
+        title.innerText = "Nuovo Giocatore";
+        editingPlayerId = null;
+        if(form) form.reset();
+    }
+    window.openModal('modal-player');
+};
+
+window.savePlayer = () => {
+    const name = document.getElementById('p-name').value;
+    const role = document.getElementById('p-role').value;
+    const number = document.getElementById('p-number').value;
+    const status = document.getElementById('p-status').value;
+    const note = document.getElementById('p-note').value;
+
+    if (!name) return alert("Il nome è obbligatorio");
+
+    let players = JSON.parse(localStorage.getItem('players') || '[]');
+
+    if (editingPlayerId) {
+        const idx = players.findIndex(p => p.id === editingPlayerId);
+        if (idx !== -1) {
+            players[idx] = { ...players[idx], name, role, number, status, note };
+        }
+    } else {
+        const newPlayer = {
+            id: 'p' + Date.now(),
+            name, role, number, status, note,
+            stats: { presenze: 0, gol: 0, assist: 0, amonizioni: 0, espulsioni: 0 }
+        };
+        players.push(newPlayer);
+    }
+
+    localStorage.setItem('players', JSON.stringify(players));
+    window.closeModal('modal-player');
+    window.loadPlayers();
+    if(window.loadDashboard) window.loadDashboard();
+};
+
+window.askAI = async () => {
+    const input = document.getElementById('ai-input');
+    const chatBody = document.getElementById('ai-chat-body');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Aggiungi messaggio utente
+    const uDiv = document.createElement('div');
+    uDiv.style = "align-self:flex-end; background:var(--green); color:white; padding:8px 12px; border-radius:12px 12px 0 12px; max-width:80%; margin-bottom:10px; font-size:13px";
+    uDiv.innerText = text;
+    chatBody.appendChild(uDiv);
+    input.value = '';
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    // Risposta "IA" Locale (Gemini simulato per stabilità)
+    setTimeout(() => {
+        const players = JSON.parse(localStorage.getItem('players') || '[]');
+        let reply = "Ciao! Sono il tuo assistente per l'ASD San Giovanni. ";
+        
+        const cmd = text.toLowerCase();
+        if (cmd.includes("giocatori") || cmd.includes("rosa")) {
+            reply += `Attualmente in rosa ci sono ${players.length} giocatori.`;
+        } else if (cmd.includes("formazione") || cmd.includes("modulo")) {
+            reply += "Ti consiglio un 4-3-3 vista la velocità dei tuoi esterni nelle ultime partite.";
+        } else {
+            reply += "Ho ricevuto il tuo messaggio. Come posso aiutarti a gestire la squadra oggi?";
+        }
+
+        const aiDiv = document.createElement('div');
+        aiDiv.style = "align-self:flex-start; background:var(--surface2); color:var(--text); padding:8px 12px; border-radius:12px 12px 12px 0; max-width:80%; margin-bottom:10px; font-size:13px; border:1px solid var(--border)";
+        aiDiv.innerText = reply;
+        chatBody.appendChild(aiDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }, 600);
+};
+</script>
