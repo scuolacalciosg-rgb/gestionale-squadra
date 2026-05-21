@@ -897,7 +897,10 @@ function renderRosa() {
     <td><span class="badge ${p.stato==='Disponibile'?'badge-green':p.stato==='Infortunato'?'badge-red':p.stato==='Squalificato'?'badge-amber':'badge-gray'}">${p.stato||'Disponibile'}</span></td>
     <td>${p.visita||'—'}${visitaWarning(p.visita)}</td>
     <td style="font-family:'DM Mono',monospace">${p.gol||0}</td>
-    <td><button class="delete-btn" onclick="window._del('players','${p._key}')"><i class="ti ti-trash" style="font-size:15px"></i></button></td>
+    <td style="display:flex;gap:4px;align-items:center">
+      <button class="delete-btn" onclick="window.editPlayer('${p._key}')" title="Modifica"><i class="ti ti-pencil" style="font-size:15px"></i></button>
+      <button class="delete-btn" onclick="window._del('players','${p._key}')"><i class="ti ti-trash" style="font-size:15px"></i></button>
+    </td>
   </tr>`).join('');
 }
 
