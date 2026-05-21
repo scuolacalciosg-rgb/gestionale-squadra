@@ -508,6 +508,10 @@
       <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Contatto</div>
       <div id="detail-contatto" style="font-size:14px;font-weight:500"></div>
     </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn" onclick="closeModal('modal-player-detail')">Chiudi</button>
+      <button class="btn btn-primary" id="pd-edit-btn"><i class="ti ti-pencil"></i> Modifica</button>
+    </div>
   </div>
 </div>
 
@@ -1149,7 +1153,71 @@ window.openPlayerDetail = (p) => {
   document.getElementById('detail-visita').innerHTML = visitaText;
   document.getElementById('detail-genitore').textContent = p.genitore||'—';
   document.getElementById('detail-contatto').textContent = p.contatto||'—';
+  // Set up edit button
+  const editBtn = document.getElementById('pd-edit-btn');
+  if(editBtn) editBtn.onclick = () => { closeModal('modal-player-detail'); window.editPlayer(p._key||p.id); };
   openModal('modal-player-detail');
+};
+
+window.editPlayer = key => {
+  const p = (state.players||{})[key]; if(!p) return;
+  // Fill modal with player data
+  document.getElementById('p-nome').value = p.nome||'';
+  document.getElementById('p-ruolo').value = p.ruolo||'Portiere';
+  document.getElementById('p-categoria').value = p.categoria||'Prima Squadra';
+  document.getElementById('p-numero').value = p.numero||'';
+  document.getElementById('p-anno').value = p.anno||'';
+  document.getElementById('p-stato').value = p.stato||'Disponibile';
+  document.getElementById('p-visita').value = p.visita||'';
+  document.getElementById('p-genitore').value = p.genitore||'';
+  document.getElementById('p-contatto').value = p.contatto||'';
+  // Show photo preview
+  const prev = document.getElementById('p-foto-preview');
+  if(p.foto) {
+    prev.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = p.foto;
+    img.style = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+    prev.appendChild(img);
+    window._playerPhotoData = p.foto;
+  } else {
+    prev.innerHTML = '📷';
+    window._playerPhotoData = null;
+  }
+  // Change modal to edit mode
+  document.querySelector('#modal-player .modal-title').textContent = 'Modifica giocatore';
+  // Change add button to update
+  const addBtn = document.querySelector('#modal-player .btn-primary');
+  addBtn.textContent = 'Aggiorna';
+  addBtn.onclick = () => window.updatePlayer(key);
+  openModal('modal-player');
+};
+
+window.updatePlayer = key => {
+  const nome = document.getElementById('p-nome').value.trim();
+  if(!nome){alert('Inserisci il nome');return;}
+  update(ref(db,'players/'+key), {
+    nome,
+    ruolo: document.getElementById('p-ruolo').value,
+    categoria: document.getElementById('p-categoria').value,
+    numero: document.getElementById('p-numero').value,
+    anno: document.getElementById('p-anno').value,
+    stato: document.getElementById('p-stato').value,
+    visita: document.getElementById('p-visita').value,
+    genitore: document.getElementById('p-genitore').value,
+    contatto: document.getElementById('p-contatto').value,
+    foto: window._playerPhotoData||''
+  });
+  closeModal('modal-player');
+  toast('Giocatore aggiornato!');
+  // Reset modal to add mode
+  document.querySelector('#modal-player .modal-title').textContent = 'Aggiungi giocatore';
+  const addBtn = document.querySelector('#modal-player .btn-primary');
+  addBtn.textContent = 'Aggiungi';
+  addBtn.onclick = window.addPlayer;
+  ['p-nome','p-numero','p-anno','p-contatto','p-genitore','p-visita'].forEach(id=>document.getElementById(id).value='');
+  window._playerPhotoData = null;
+  document.getElementById('p-foto-preview').innerHTML = '📷';
 };
 window._playerPhotoData = null;
 window.previewPlayerPhoto = event => {
@@ -1212,7 +1280,71 @@ window.addPlayer = () => {
   document.getElementById('detail-visita').innerHTML = visitaText;
   document.getElementById('detail-genitore').textContent = p.genitore||'—';
   document.getElementById('detail-contatto').textContent = p.contatto||'—';
+  // Set up edit button
+  const editBtn = document.getElementById('pd-edit-btn');
+  if(editBtn) editBtn.onclick = () => { closeModal('modal-player-detail'); window.editPlayer(p._key||p.id); };
   openModal('modal-player-detail');
+};
+
+window.editPlayer = key => {
+  const p = (state.players||{})[key]; if(!p) return;
+  // Fill modal with player data
+  document.getElementById('p-nome').value = p.nome||'';
+  document.getElementById('p-ruolo').value = p.ruolo||'Portiere';
+  document.getElementById('p-categoria').value = p.categoria||'Prima Squadra';
+  document.getElementById('p-numero').value = p.numero||'';
+  document.getElementById('p-anno').value = p.anno||'';
+  document.getElementById('p-stato').value = p.stato||'Disponibile';
+  document.getElementById('p-visita').value = p.visita||'';
+  document.getElementById('p-genitore').value = p.genitore||'';
+  document.getElementById('p-contatto').value = p.contatto||'';
+  // Show photo preview
+  const prev = document.getElementById('p-foto-preview');
+  if(p.foto) {
+    prev.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = p.foto;
+    img.style = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+    prev.appendChild(img);
+    window._playerPhotoData = p.foto;
+  } else {
+    prev.innerHTML = '📷';
+    window._playerPhotoData = null;
+  }
+  // Change modal to edit mode
+  document.querySelector('#modal-player .modal-title').textContent = 'Modifica giocatore';
+  // Change add button to update
+  const addBtn = document.querySelector('#modal-player .btn-primary');
+  addBtn.textContent = 'Aggiorna';
+  addBtn.onclick = () => window.updatePlayer(key);
+  openModal('modal-player');
+};
+
+window.updatePlayer = key => {
+  const nome = document.getElementById('p-nome').value.trim();
+  if(!nome){alert('Inserisci il nome');return;}
+  update(ref(db,'players/'+key), {
+    nome,
+    ruolo: document.getElementById('p-ruolo').value,
+    categoria: document.getElementById('p-categoria').value,
+    numero: document.getElementById('p-numero').value,
+    anno: document.getElementById('p-anno').value,
+    stato: document.getElementById('p-stato').value,
+    visita: document.getElementById('p-visita').value,
+    genitore: document.getElementById('p-genitore').value,
+    contatto: document.getElementById('p-contatto').value,
+    foto: window._playerPhotoData||''
+  });
+  closeModal('modal-player');
+  toast('Giocatore aggiornato!');
+  // Reset modal to add mode
+  document.querySelector('#modal-player .modal-title').textContent = 'Aggiungi giocatore';
+  const addBtn = document.querySelector('#modal-player .btn-primary');
+  addBtn.textContent = 'Aggiungi';
+  addBtn.onclick = window.addPlayer;
+  ['p-nome','p-numero','p-anno','p-contatto','p-genitore','p-visita'].forEach(id=>document.getElementById(id).value='');
+  window._playerPhotoData = null;
+  document.getElementById('p-foto-preview').innerHTML = '📷';
 };
 window._playerPhotoData = null;
   document.getElementById('p-foto-preview').innerHTML = '📷';
@@ -1721,11 +1853,36 @@ let iaHistory = [];
 const iaSystemPrompt = () => {
   const players = Object.values(state.players||{});
   const settings = state.settings||{};
-  const exercises = Object.values(state.exercises||{}).map(e=>e.nome).join(', ');
-  return `Sei un assistente esperto di calcio giovanile integrato nel gestionale della squadra ${settings.teamName||'ASD San Giovanni'}, stagione ${settings.stagione||'2025/26'}.
-La squadra ha ${players.length} giocatori. Categorie presenti: ${[...new Set(players.map(p=>p.categoria).filter(Boolean))].join(', ')||'non specificate'}.
-Esercizi disponibili nel database: ${exercises.slice(0,500)}.
-Rispondi sempre in italiano. Sii pratico e conciso. Quando crei allenamenti specifica: titolo, durata totale, lista esercizi con durata e descrizione. Quando suggerisci obiettivi sii specifico per l'età e la categoria.`;
+  const exercises = Object.values(state.exercises||{}).map(e=>`${e.nome} (${e.cat}, ${e.dur}min)`).join('; ');
+  const matches = Object.values(state.matches||{});
+  const wins = matches.filter(m=>m.gn>m.ga).length;
+  const losses = matches.filter(m=>m.gn<m.ga).length;
+  const categorie = [...new Set(players.map(p=>p.categoria).filter(Boolean))].join(', ');
+  return `Sei un assistente esperto di calcio giovanile integrato nel gestionale della squadra ${settings.teamName||'ASD San Giovanni'}, stagione ${settings.stagione||'2025/26'}. Allenatore: ${settings.mister||'non specificato'}. Campo: ${settings.campo||'non specificato'}.
+
+DATI SQUADRA:
+- Giocatori: ${players.length}
+- Categorie: ${categorie||'non specificate'}
+- Partite: ${matches.length} (${wins}V - ${losses}S)
+
+ESERCIZI NEL DATABASE (${Object.values(state.exercises||{}).length} totali):
+${exercises.slice(0,800)}
+
+ISTRUZIONI:
+- Rispondi SEMPRE in italiano
+- Quando crei un esercizio usa questo formato:
+  **Nome esercizio**
+  Categoria: [categoria]
+  Durata: [X] minuti
+  Giocatori: [numero]
+  Descrizione: [descrizione dettagliata passo per passo]
+  Obiettivo: [cosa sviluppa]
+
+- Quando crei un allenamento specifica: titolo, durata totale, e ogni esercizio con nome+durata+descrizione
+- Puoi creare esercizi completamente nuovi non presenti nel database
+- Adatta sempre i contenuti all'età e categoria dei bambini
+- Per i primi calci (5-8 anni) privilegia giochi, divertimento e coordinazione
+- Sii pratico, creativo e dettagliato`;
 };
 
 const iaQuickPrompts = {
@@ -1746,11 +1903,9 @@ window.sendToIA = async () => {
   if(!msg) return;
   input.value = '';
 
-  // Add user message
   iaHistory.push({role:'user', content: msg});
   renderIAMessages();
 
-  // Show loading
   const loadId = 'ia-loading-'+Date.now();
   const msgsEl = document.getElementById('ia-messages');
   msgsEl.innerHTML += `<div id="${loadId}" style="display:flex;gap:10px;align-items:flex-start">
@@ -1764,28 +1919,101 @@ window.sendToIA = async () => {
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': window._iaApiKey || '',
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-allow-browser': 'true'
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
+        max_tokens: 1500,
         system: iaSystemPrompt(),
         messages: iaHistory
       })
     });
+
+    if(response.status === 401) {
+      const loadEl = document.getElementById(loadId);
+      if(loadEl) loadEl.remove();
+      showApiKeyPrompt();
+      iaHistory.pop();
+      return;
+    }
+
     const data = await response.json();
     const reply = data.content?.[0]?.text || 'Errore nella risposta.';
     iaHistory.push({role:'assistant', content: reply});
-
-    // Remove loading and render
     const loadEl = document.getElementById(loadId);
     if(loadEl) loadEl.remove();
     renderIAMessages();
+
+    // Check if user wants to save exercise
+    if(reply.includes('**') && (msg.toLowerCase().includes('esercizio') || msg.toLowerCase().includes('crea') || msg.toLowerCase().includes('allenamento'))) {
+      showSaveToDb(reply);
+    }
+
   } catch(err) {
     const loadEl = document.getElementById(loadId);
     if(loadEl) loadEl.remove();
-    iaHistory.push({role:'assistant', content: 'Errore di connessione. Riprova.'});
+    iaHistory.push({role:'assistant', content: 'Errore: ' + err.message});
     renderIAMessages();
   }
+};
+
+function showApiKeyPrompt() {
+  const el = document.getElementById('ia-messages');
+  el.innerHTML += `<div style="background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius);padding:16px;margin:8px 0">
+    <div style="font-size:13px;font-weight:600;color:var(--amber-dark);margin-bottom:8px">🔑 Chiave API richiesta</div>
+    <div style="font-size:12px;color:var(--amber-dark);margin-bottom:12px;line-height:1.5">Per usare l'assistente IA hai bisogno di una chiave API Anthropic gratuita.<br>Vai su <a href="https://console.anthropic.com" target="_blank" style="color:var(--amber-dark)">console.anthropic.com</a> → "API Keys" → crea una chiave.</div>
+    <div style="display:flex;gap:8px">
+      <input type="password" id="api-key-input" placeholder="sk-ant-..." style="flex:1;font-size:12px">
+      <button class="btn btn-primary" onclick="saveApiKey()" style="font-size:12px;padding:6px 12px">Salva</button>
+    </div>
+  </div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+window.saveApiKey = () => {
+  const key = document.getElementById('api-key-input').value.trim();
+  if(!key.startsWith('sk-ant-')) { alert('Chiave non valida, deve iniziare con sk-ant-'); return; }
+  window._iaApiKey = key;
+  try { localStorage.setItem('ia_api_key', key); } catch(e){}
+  toast('Chiave API salvata!');
+  renderIAMessages();
+};
+
+// Load saved API key
+try { window._iaApiKey = localStorage.getItem('ia_api_key') || ''; } catch(e){ window._iaApiKey = ''; }
+
+function showSaveToDb(reply) {
+  const msgsEl = document.getElementById('ia-messages');
+  msgsEl.innerHTML += `<div style="background:var(--green-light);border:1px solid var(--green);border-radius:var(--radius);padding:12px;margin-top:8px">
+    <div style="font-size:12px;color:var(--green-dark);margin-bottom:8px;font-weight:500">💡 Vuoi salvare questo nel database?</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="saveIAExercise(\`${reply.replace(/`/g,"'").slice(0,500)}\`)"><i class="ti ti-barbell"></i> Salva come esercizio</button>
+      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="saveIATraining(\`${reply.replace(/`/g,"'").slice(0,500)}\`)"><i class="ti ti-calendar"></i> Salva come allenamento</button>
+    </div>
+  </div>`;
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+window.saveIAExercise = (text) => {
+  // Pre-fill exercise modal with IA content
+  document.getElementById('e-nome').value = 'Esercizio IA - ' + new Date().toLocaleDateString('it-IT');
+  document.getElementById('e-desc').value = text.slice(0,500);
+  window._exercisePhotoData = null;
+  openModal('modal-exercise');
+  toast('Modifica i dettagli e salva!');
+};
+
+window.saveIATraining = (text) => {
+  document.getElementById('t-titolo').value = 'Allenamento IA - ' + new Date().toLocaleDateString('it-IT');
+  document.getElementById('t-note').value = text.slice(0,500);
+  window._trainingExercises = [];
+  renderTrainingExercises();
+  openModal('modal-training');
+  toast('Modifica i dettagli e salva!');
 };
 
 function renderIAMessages() {
@@ -2072,98 +2300,3 @@ const origRenderAll = typeof renderAll !== 'undefined' ? renderAll : null;
 </script>
 </body>
 </html>
-<script>
-let editingPlayerId = null;
-
-window.openPlayerModal = (id = null) => {
-    const modal = document.getElementById('modal-player');
-    const title = modal.querySelector('h2');
-    const form = document.getElementById('player-form');
-    
-    if (id) {
-        title.innerText = "Modifica Giocatore";
-        editingPlayerId = id;
-        const players = JSON.parse(localStorage.getItem('players') || '[]');
-        const p = players.find(x => x.id === id);
-        if (p) {
-            document.getElementById('p-name').value = p.name || '';
-            document.getElementById('p-role').value = p.role || 'Portiere';
-            document.getElementById('p-number').value = p.number || '';
-            document.getElementById('p-status').value = p.status || 'Attivo';
-            document.getElementById('p-note').value = p.note || '';
-        }
-    } else {
-        title.innerText = "Nuovo Giocatore";
-        editingPlayerId = null;
-        if(form) form.reset();
-    }
-    window.openModal('modal-player');
-};
-
-window.savePlayer = () => {
-    const name = document.getElementById('p-name').value;
-    const role = document.getElementById('p-role').value;
-    const number = document.getElementById('p-number').value;
-    const status = document.getElementById('p-status').value;
-    const note = document.getElementById('p-note').value;
-
-    if (!name) return alert("Il nome è obbligatorio");
-
-    let players = JSON.parse(localStorage.getItem('players') || '[]');
-
-    if (editingPlayerId) {
-        const idx = players.findIndex(p => p.id === editingPlayerId);
-        if (idx !== -1) {
-            players[idx] = { ...players[idx], name, role, number, status, note };
-        }
-    } else {
-        const newPlayer = {
-            id: 'p' + Date.now(),
-            name, role, number, status, note,
-            stats: { presenze: 0, gol: 0, assist: 0, amonizioni: 0, espulsioni: 0 }
-        };
-        players.push(newPlayer);
-    }
-
-    localStorage.setItem('players', JSON.stringify(players));
-    window.closeModal('modal-player');
-    window.loadPlayers();
-    if(window.loadDashboard) window.loadDashboard();
-};
-
-window.askAI = async () => {
-    const input = document.getElementById('ai-input');
-    const chatBody = document.getElementById('ai-chat-body');
-    const text = input.value.trim();
-    if (!text) return;
-
-    // Aggiungi messaggio utente
-    const uDiv = document.createElement('div');
-    uDiv.style = "align-self:flex-end; background:var(--green); color:white; padding:8px 12px; border-radius:12px 12px 0 12px; max-width:80%; margin-bottom:10px; font-size:13px";
-    uDiv.innerText = text;
-    chatBody.appendChild(uDiv);
-    input.value = '';
-    chatBody.scrollTop = chatBody.scrollHeight;
-
-    // Risposta "IA" Locale (Gemini simulato per stabilità)
-    setTimeout(() => {
-        const players = JSON.parse(localStorage.getItem('players') || '[]');
-        let reply = "Ciao! Sono il tuo assistente per l'ASD San Giovanni. ";
-        
-        const cmd = text.toLowerCase();
-        if (cmd.includes("giocatori") || cmd.includes("rosa")) {
-            reply += `Attualmente in rosa ci sono ${players.length} giocatori.`;
-        } else if (cmd.includes("formazione") || cmd.includes("modulo")) {
-            reply += "Ti consiglio un 4-3-3 vista la velocità dei tuoi esterni nelle ultime partite.";
-        } else {
-            reply += "Ho ricevuto il tuo messaggio. Come posso aiutarti a gestire la squadra oggi?";
-        }
-
-        const aiDiv = document.createElement('div');
-        aiDiv.style = "align-self:flex-start; background:var(--surface2); color:var(--text); padding:8px 12px; border-radius:12px 12px 12px 0; max-width:80%; margin-bottom:10px; font-size:13px; border:1px solid var(--border)";
-        aiDiv.innerText = reply;
-        chatBody.appendChild(aiDiv);
-        chatBody.scrollTop = chatBody.scrollHeight;
-    }, 600);
-};
-</script>
