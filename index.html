@@ -1904,8 +1904,15 @@ window.sendToIA = async () => {
   const input = document.getElementById('ia-input');
   const msg = input.value.trim();
   if(!msg) return;
-  input.value = '';
 
+  // Check API key first
+  if(!window._iaApiKey) {
+    input.value = msg; // restore message
+    showApiKeyPrompt();
+    return;
+  }
+
+  input.value = '';
   iaHistory.push({role:'user', content: msg});
   renderIAMessages();
 
@@ -1964,13 +1971,21 @@ window.sendToIA = async () => {
 
 function showApiKeyPrompt() {
   const el = document.getElementById('ia-messages');
-  el.innerHTML += `<div style="background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius);padding:16px;margin:8px 0">
-    <div style="font-size:13px;font-weight:600;color:var(--amber-dark);margin-bottom:8px">🔑 Chiave API richiesta</div>
-    <div style="font-size:12px;color:var(--amber-dark);margin-bottom:12px;line-height:1.5">Per usare l'assistente IA hai bisogno di una chiave API Anthropic gratuita.<br>Vai su <a href="https://console.anthropic.com" target="_blank" style="color:var(--amber-dark)">console.anthropic.com</a> → "API Keys" → crea una chiave.</div>
-    <div style="display:flex;gap:8px">
-      <input type="password" id="api-key-input" placeholder="sk-ant-..." style="flex:1;font-size:12px">
-      <button class="btn btn-primary" onclick="saveApiKey()" style="font-size:12px;padding:6px 12px">Salva</button>
+  // Remove existing prompt if any
+  const existing = document.getElementById('api-key-prompt');
+  if(existing) existing.remove();
+  el.innerHTML += `<div id="api-key-prompt" style="background:var(--amber-light);border:2px solid var(--amber);border-radius:var(--radius);padding:16px;margin:8px 0">
+    <div style="font-size:14px;font-weight:600;color:var(--amber-dark);margin-bottom:8px">🔑 Inserisci la tua chiave API Anthropic</div>
+    <div style="font-size:12px;color:var(--amber-dark);margin-bottom:12px;line-height:1.6">
+      1. Vai su <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--amber-dark);font-weight:600">console.anthropic.com</a><br>
+      2. Clicca <b>"Create Key"</b><br>
+      3. Copia la chiave (inizia con <b>sk-ant-</b>) e incollala qui sotto
     </div>
+    <div style="display:flex;gap:8px">
+      <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="flex:1;font-size:13px" autofocus>
+      <button class="btn btn-primary" onclick="saveApiKey()" style="font-size:13px;padding:8px 16px"><i class="ti ti-check"></i> Salva</button>
+    </div>
+    <div style="font-size:11px;color:var(--amber-dark);margin-top:8px">La chiave viene salvata nel tuo browser e non viene condivisa.</div>
   </div>`;
   el.scrollTop = el.scrollHeight;
 }
@@ -1980,8 +1995,15 @@ window.saveApiKey = () => {
   if(!key.startsWith('sk-ant-')) { alert('Chiave non valida, deve iniziare con sk-ant-'); return; }
   window._iaApiKey = key;
   try { localStorage.setItem('ia_api_key', key); } catch(e){}
-  toast('Chiave API salvata!');
+  toast('Chiave API salvata! Ora puoi usare l\'assistente IA.');
+  // Clear the prompt message and re-render
+  const el = document.getElementById('ia-messages');
+  // Remove the last prompt div
+  const lastDiv = el.lastElementChild;
+  if(lastDiv) lastDiv.remove();
   renderIAMessages();
+  // Focus input
+  document.getElementById('ia-input').focus();
 };
 
 // Load saved API key
