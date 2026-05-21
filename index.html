@@ -388,7 +388,13 @@
       <div class="topbar">
         <div><div class="page-title">Assistente IA</div><div class="page-subtitle">Powered by Claude AI</div></div>
       </div>
-      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:24px;gap:16px">
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:24px;gap:14px">
+        <!-- API Key bar -->
+        <div id="ia-key-bar" style="background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius);padding:12px;display:flex;align-items:center;gap:10px">
+          <i class="ti ti-key" style="color:var(--amber-dark);font-size:18px;flex-shrink:0"></i>
+          <input type="password" id="ia-key-field" placeholder="Incolla qui la tua chiave API Anthropic (sk-ant-...)" style="flex:1;background:transparent;border:none;font-size:13px;color:var(--amber-dark);outline:none" oninput="checkApiKeyBar()">
+          <button class="btn btn-primary" onclick="saveApiKeyBar()" style="font-size:12px;padding:6px 12px;flex-shrink:0"><i class="ti ti-check"></i> Salva</button>
+        </div>
         <!-- Quick actions -->
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn" onclick="iaQuickPrompt('crea_allenamento')"><i class="ti ti-calendar-plus"></i> Crea allenamento</button>
@@ -397,11 +403,11 @@
           <button class="btn" onclick="iaQuickPrompt('suggerisci_obiettivi')"><i class="ti ti-target"></i> Suggerisci obiettivi</button>
         </div>
         <!-- Chat area -->
-        <div id="ia-messages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;min-height:200px;max-height:400px;padding:4px"></div>
+        <div id="ia-messages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;min-height:200px;padding:4px"></div>
         <!-- Input -->
         <div style="display:flex;gap:10px;align-items:flex-end">
-          <textarea id="ia-input" placeholder="Chiedimi qualcosa... es. Crea un allenamento di 60 minuti sui passaggi per 12 bambini di 8 anni" style="flex:1;resize:none;min-height:60px;max-height:120px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendToIA()}"></textarea>
-          <button class="btn btn-primary" onclick="sendToIA()" style="padding:10px 16px;height:60px"><i class="ti ti-send"></i></button>
+          <textarea id="ia-input" placeholder="Chiedimi qualcosa... es. Crea un allenamento di 60 minuti sui passaggi per 12 bambini di 8 anni" style="flex:1;resize:none;min-height:60px;max-height:120px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.sendToIA()}"></textarea>
+          <button class="btn btn-primary" onclick="window.sendToIA()" style="padding:10px 16px;height:60px"><i class="ti ti-send"></i></button>
         </div>
       </div>
     </div>
@@ -1600,7 +1606,7 @@ window.showSection = (id,btn) => {
   if(id==='statistiche') renderStatistiche();
   if(id==='impostazioni') renderStagioniArchivio();
   if(id==='obiettivi') renderObiettivi();
-  if(id==='ia') renderIAMessages();
+  if(id==='ia') { renderIAMessages(); window.initIaKeyBar(); }
 };
 window.openModal = id=>document.getElementById(id).classList.add('open');
 window.closeModal = id=>document.getElementById(id).classList.remove('open');
@@ -2008,6 +2014,50 @@ window.saveApiKey = () => {
 
 // Load saved API key
 try { window._iaApiKey = localStorage.getItem('ia_api_key') || ''; } catch(e){ window._iaApiKey = ''; }
+
+window.checkApiKeyBar = () => {
+  const val = document.getElementById('ia-key-field').value.trim();
+  if(val.startsWith('sk-ant-')) {
+    document.getElementById('ia-key-field').style.color = 'var(--green-dark)';
+  }
+};
+
+window.saveApiKeyBar = () => {
+  const key = document.getElementById('ia-key-field').value.trim();
+  if(!key.startsWith('sk-ant-')) {
+    alert('Chiave non valida. Deve iniziare con sk-ant-');
+    return;
+  }
+  window._iaApiKey = key;
+  try { localStorage.setItem('ia_api_key', key); } catch(e){}
+  // Hide the key bar and show success
+  const bar = document.getElementById('ia-key-bar');
+  bar.style.background = 'var(--green-light)';
+  bar.style.borderColor = 'var(--green)';
+  bar.innerHTML = '<i class="ti ti-circle-check" style="color:var(--green-dark);font-size:18px"></i><span style="color:var(--green-dark);font-size:13px;font-weight:500">Chiave API salvata! Puoi usare l\'assistente IA.</span><button class="btn" onclick="resetApiKey()" style="font-size:11px;padding:4px 8px;margin-left:auto">Cambia chiave</button>';
+  toast('Chiave API salvata!');
+};
+
+window.resetApiKey = () => {
+  window._iaApiKey = '';
+  try { localStorage.removeItem('ia_api_key'); } catch(e){}
+  const bar = document.getElementById('ia-key-bar');
+  bar.style.background = 'var(--amber-light)';
+  bar.style.borderColor = 'var(--amber)';
+  bar.innerHTML = '<i class="ti ti-key" style="color:var(--amber-dark);font-size:18px;flex-shrink:0"></i><input type="password" id="ia-key-field" placeholder="Incolla qui la tua chiave API Anthropic (sk-ant-...)" style="flex:1;background:transparent;border:none;font-size:13px;color:var(--amber-dark);outline:none" oninput="checkApiKeyBar()"><button class="btn btn-primary" onclick="saveApiKeyBar()" style="font-size:12px;padding:6px 12px;flex-shrink:0"><i class="ti ti-check"></i> Salva</button>';
+};
+
+// Auto-show saved key status on load
+window.initIaKeyBar = () => {
+  if(window._iaApiKey && window._iaApiKey.startsWith('sk-ant-')) {
+    const bar = document.getElementById('ia-key-bar');
+    if(bar) {
+      bar.style.background = 'var(--green-light)';
+      bar.style.borderColor = 'var(--green)';
+      bar.innerHTML = '<i class="ti ti-circle-check" style="color:var(--green-dark);font-size:18px"></i><span style="color:var(--green-dark);font-size:13px;font-weight:500">Chiave API attiva ✓</span><button class="btn" onclick="resetApiKey()" style="font-size:11px;padding:4px 8px;margin-left:auto">Cambia chiave</button>';
+    }
+  }
+};
 
 function showSaveToDb(reply) {
   const msgsEl = document.getElementById('ia-messages');
