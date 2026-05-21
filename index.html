@@ -386,13 +386,13 @@
     <!-- ASSISTENTE IA -->
     <div id="sec-ia" class="section">
       <div class="topbar">
-        <div><div class="page-title">Assistente IA</div><div class="page-subtitle">Powered by Claude AI</div></div>
+        <div><div class="page-title">Assistente IA</div><div class="page-subtitle">Powered by Google Gemini AI (gratuito)</div></div>
       </div>
       <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:24px;gap:14px">
         <!-- API Key bar -->
         <div id="ia-key-bar" style="background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius);padding:12px;display:flex;align-items:center;gap:10px">
           <i class="ti ti-key" style="color:var(--amber-dark);font-size:18px;flex-shrink:0"></i>
-          <input type="password" id="ia-key-field" placeholder="Incolla qui la tua chiave API Anthropic (sk-ant-...)" style="flex:1;background:transparent;border:none;font-size:13px;color:var(--amber-dark);outline:none" oninput="checkApiKeyBar()">
+          <input type="password" id="ia-key-field" placeholder="Incolla qui la tua chiave API Google Gemini (AIza...)" style="flex:1;background:transparent;border:none;font-size:13px;color:var(--amber-dark);outline:none" oninput="checkApiKeyBar()">
           <button class="btn btn-primary" onclick="saveApiKeyBar()" style="font-size:12px;padding:6px 12px;flex-shrink:0"><i class="ti ti-check"></i> Salva</button>
         </div>
         <!-- Quick actions -->
@@ -1912,7 +1912,7 @@ window.sendToIA = async () => {
   if(!msg) return;
 
   // Check API key first
-  if(!window._iaApiKey) {
+  if(!window._iaApiKey || window._iaApiKey.length < 10) {
     input.value = msg; // restore message
     showApiKeyPrompt();
     return;
@@ -1933,36 +1933,47 @@ window.sendToIA = async () => {
   msgsEl.scrollTop = msgsEl.scrollHeight;
 
   try {
-    const response = await fetch('https://anthropic-proxy.scuolacalciosg.workers.dev/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': window._iaApiKey || '',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        system: iaSystemPrompt(),
-        messages: iaHistory
-      })
-    });
+    // Build Gemini messages format
+    const systemPrompt = iaSystemPrompt();
+    const geminiMessages = iaHistory.map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{text: m.content}]
+    }));
 
-    if(response.status === 401) {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${window._iaApiKey}`,
+      {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          system_instruction: {parts: [{text: systemPrompt}]},
+          contents: geminiMessages,
+          generationConfig: {maxOutputTokens: 1500, temperature: 0.7}
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if(data.error) {
       const loadEl = document.getElementById(loadId);
       if(loadEl) loadEl.remove();
-      showApiKeyPrompt();
-      iaHistory.pop();
+      if(data.error.code === 400 || data.error.code === 403) {
+        showApiKeyPrompt();
+        iaHistory.pop();
+      } else {
+        iaHistory.push({role:'assistant', content: 'Errore: ' + data.error.message});
+        renderIAMessages();
+      }
       return;
     }
 
-    const data = await response.json();
-    const reply = data.content?.[0]?.text || 'Errore nella risposta.';
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Errore nella risposta.';
     iaHistory.push({role:'assistant', content: reply});
     const loadEl = document.getElementById(loadId);
     if(loadEl) loadEl.remove();
     renderIAMessages();
 
-    // Check if user wants to save exercise
     if(reply.includes('**') && (msg.toLowerCase().includes('esercizio') || msg.toLowerCase().includes('crea') || msg.toLowerCase().includes('allenamento'))) {
       showSaveToDb(reply);
     }
@@ -1970,7 +1981,7 @@ window.sendToIA = async () => {
   } catch(err) {
     const loadEl = document.getElementById(loadId);
     if(loadEl) loadEl.remove();
-    iaHistory.push({role:'assistant', content: 'Errore: ' + err.message});
+    iaHistory.push({role:'assistant', content: 'Errore di connessione: ' + err.message});
     renderIAMessages();
   }
 };
@@ -1983,9 +1994,9 @@ function showApiKeyPrompt() {
   el.innerHTML += `<div id="api-key-prompt" style="background:var(--amber-light);border:2px solid var(--amber);border-radius:var(--radius);padding:16px;margin:8px 0">
     <div style="font-size:14px;font-weight:600;color:var(--amber-dark);margin-bottom:8px">🔑 Inserisci la tua chiave API Anthropic</div>
     <div style="font-size:12px;color:var(--amber-dark);margin-bottom:12px;line-height:1.6">
-      1. Vai su <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--amber-dark);font-weight:600">console.anthropic.com</a><br>
-      2. Clicca <b>"Create Key"</b><br>
-      3. Copia la chiave (inizia con <b>sk-ant-</b>) e incollala qui sotto
+      1. Vai su <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--amber-dark);font-weight:600">aistudio.google.com</a><br>
+      2. Clicca <b>"Get API Key"</b> → <b>"Create API Key"</b><br>
+      3. Copia la chiave (inizia con <b>AIza</b>) e incollala qui sotto
     </div>
     <div style="display:flex;gap:8px">
       <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="flex:1;font-size:13px" autofocus>
@@ -1998,7 +2009,7 @@ function showApiKeyPrompt() {
 
 window.saveApiKey = () => {
   const key = document.getElementById('api-key-input').value.trim();
-  if(!key.startsWith('sk-ant-')) { alert('Chiave non valida, deve iniziare con sk-ant-'); return; }
+  if(!key.startsWith('AIza') && key.length < 20) { alert('Chiave non valida'); return; }
   window._iaApiKey = key;
   try { localStorage.setItem('ia_api_key', key); } catch(e){}
   toast('Chiave API salvata! Ora puoi usare l\'assistente IA.');
@@ -2017,15 +2028,15 @@ try { window._iaApiKey = localStorage.getItem('ia_api_key') || ''; } catch(e){ w
 
 window.checkApiKeyBar = () => {
   const val = document.getElementById('ia-key-field').value.trim();
-  if(val.startsWith('sk-ant-')) {
+  if(val.startsWith('AIza') || val.length > 20) {
     document.getElementById('ia-key-field').style.color = 'var(--green-dark)';
   }
 };
 
 window.saveApiKeyBar = () => {
   const key = document.getElementById('ia-key-field').value.trim();
-  if(!key.startsWith('sk-ant-')) {
-    alert('Chiave non valida. Deve iniziare con sk-ant-');
+  if(!key.startsWith('AIza') && key.length < 20) {
+    alert('Chiave non valida. Deve iniziare con AIza...');
     return;
   }
   window._iaApiKey = key;
@@ -2044,12 +2055,12 @@ window.resetApiKey = () => {
   const bar = document.getElementById('ia-key-bar');
   bar.style.background = 'var(--amber-light)';
   bar.style.borderColor = 'var(--amber)';
-  bar.innerHTML = '<i class="ti ti-key" style="color:var(--amber-dark);font-size:18px;flex-shrink:0"></i><input type="password" id="ia-key-field" placeholder="Incolla qui la tua chiave API Anthropic (sk-ant-...)" style="flex:1;background:transparent;border:none;font-size:13px;color:var(--amber-dark);outline:none" oninput="checkApiKeyBar()"><button class="btn btn-primary" onclick="saveApiKeyBar()" style="font-size:12px;padding:6px 12px;flex-shrink:0"><i class="ti ti-check"></i> Salva</button>';
+  bar.innerHTML = '<i class="ti ti-key" style="color:var(--amber-dark);font-size:18px;flex-shrink:0"></i><input type="password" id="ia-key-field" placeholder="Incolla qui la tua chiave API Google Gemini (AIza...)" style="flex:1;background:transparent;border:none;font-size:13px;color:var(--amber-dark);outline:none" oninput="checkApiKeyBar()"><button class="btn btn-primary" onclick="saveApiKeyBar()" style="font-size:12px;padding:6px 12px;flex-shrink:0"><i class="ti ti-check"></i> Salva</button>';
 };
 
 // Auto-show saved key status on load
 window.initIaKeyBar = () => {
-  if(window._iaApiKey && window._iaApiKey.startsWith('sk-ant-')) {
+  if(window._iaApiKey && window._iaApiKey.length > 10) {
     const bar = document.getElementById('ia-key-bar');
     if(bar) {
       bar.style.background = 'var(--green-light)';
