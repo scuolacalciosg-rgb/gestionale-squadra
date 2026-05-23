@@ -1862,36 +1862,7 @@ let iaHistory = [];
 const iaSystemPrompt = () => {
   const players = Object.values(state.players||{});
   const settings = state.settings||{};
-  const exercises = Object.values(state.exercises||{}).map(e=>`${e.nome} (${e.cat}, ${e.dur}min)`).join('; ');
-  const matches = Object.values(state.matches||{});
-  const wins = matches.filter(m=>m.gn>m.ga).length;
-  const losses = matches.filter(m=>m.gn<m.ga).length;
-  const categorie = [...new Set(players.map(p=>p.categoria).filter(Boolean))].join(', ');
-  return `Sei un assistente esperto di calcio giovanile integrato nel gestionale della squadra ${settings.teamName||'ASD San Giovanni'}, stagione ${settings.stagione||'2025/26'}. Allenatore: ${settings.mister||'non specificato'}. Campo: ${settings.campo||'non specificato'}.
-
-DATI SQUADRA:
-- Giocatori: ${players.length}
-- Categorie: ${categorie||'non specificate'}
-- Partite: ${matches.length} (${wins}V - ${losses}S)
-
-ESERCIZI NEL DATABASE (${Object.values(state.exercises||{}).length} totali):
-${exercises.slice(0,800)}
-
-ISTRUZIONI:
-- Rispondi SEMPRE in italiano
-- Quando crei un esercizio usa questo formato:
-  **Nome esercizio**
-  Categoria: [categoria]
-  Durata: [X] minuti
-  Giocatori: [numero]
-  Descrizione: [descrizione dettagliata passo per passo]
-  Obiettivo: [cosa sviluppa]
-
-- Quando crei un allenamento specifica: titolo, durata totale, e ogni esercizio con nome+durata+descrizione
-- Puoi creare esercizi completamente nuovi non presenti nel database
-- Adatta sempre i contenuti all'età e categoria dei bambini
-- Per i primi calci (5-8 anni) privilegia giochi, divertimento e coordinazione
-- Sii pratico, creativo e dettagliato`;
+  return `Sei un assistente esperto di calcio giovanile per la squadra ${settings.teamName||'ASD San Giovanni'}, stagione ${settings.stagione||'2025/26'}. Hai ${players.length} giocatori. Rispondi sempre in italiano. Sei pratico e dettagliato. Quando crei esercizi usa il formato: **Nome**, Categoria, Durata, Descrizione. Quando crei allenamenti specifica ogni esercizio con durata.`;
 };
 
 const iaQuickPrompts = {
