@@ -1913,7 +1913,7 @@ window.sendToIA = async () => {
         'X-Title': 'ASD San Giovanni Gestionale'
       },
       body: JSON.stringify({
-        model: 'deepseek/deepseek-v4-flash:free',
+        model: 'openrouter/auto',
         messages: [
           {role: 'system', content: iaSystemPrompt()},
           ...iaHistory
