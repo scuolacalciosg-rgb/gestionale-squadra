@@ -1933,21 +1933,21 @@ window.iaGeneraEsercizio = () => {
   const note = document.getElementById('ia-ex-note').value;
   closeModal('modal-ia-exercise');
 
-  const prompt = `Crea UN singolo esercizio di calcio con queste caratteristiche:
-- Categoria: ${cat}
-- Durata: ${dur} minuti
-${gioc ? `- Numero giocatori: ${gioc}` : ''}
-${note ? `- Note: ${note}` : ''}
-
-Usa ESATTAMENTE questo formato:
-**[Nome esercizio]**
-Categoria: ${cat}
-Durata: ${dur} min
-${gioc ? `Giocatori: ${gioc}` : ''}
-Descrizione: [descrizione dettagliata passo per passo, cosa serve, come si svolge]
-Obiettivo: [cosa sviluppa nei bambini]
-Variante: [una variante per rendere più facile o difficile]`;
-
+  const giocLine = gioc ? '- Numero giocatori: ' + gioc + '\n' : '';
+  const noteLine = note ? '- Note: ' + note + '\n' : '';
+  const giocFormat = gioc ? 'Giocatori: ' + gioc + '\n' : '';
+  const prompt = 'Crea UN singolo esercizio di calcio con queste caratteristiche:\n' +
+    '- Categoria: ' + cat + '\n' +
+    '- Durata: ' + dur + ' minuti\n' +
+    giocLine + noteLine +
+    '\nUsa ESATTAMENTE questo formato:\n' +
+    '**[Nome esercizio]**\n' +
+    'Categoria: ' + cat + '\n' +
+    'Durata: ' + dur + ' min\n' +
+    giocFormat +
+    'Descrizione: [descrizione dettagliata passo per passo]\n' +
+    'Obiettivo: [cosa sviluppa nei bambini]\n' +
+    'Variante: [una variante piu facile o difficile]';
   document.getElementById('ia-input').value = prompt;
   window.sendToIA();
 };
@@ -2136,10 +2136,10 @@ function showSaveToDb(reply) {
 window.saveIAExerciseParsed = (encoded) => {
   const text = decodeURIComponent(encoded);
   // Try to extract name from **Name** pattern
-  const nameMatch = text.match(/\*\*([^*]+)\*\*/);
+  const nameMatch = text.match(/[*][*]([^*]+)[*][*]/);
   const catMatch = text.match(/Categoria:\s*([^
 ]+)/i);
-  const durMatch = text.match(/Durata:\s*(\d+)/i);
+  const durMatch = text.match(/Durata:[\s]*(\d+)/i);
   const descMatch = text.match(/Descrizione:\s*([^
 ]+(?:
 (?!Obiettivo|Variante|Categoria|Durata)[^
@@ -2156,7 +2156,7 @@ window.saveIAExerciseParsed = (encoded) => {
 
 window.saveIATrainingParsed = (encoded) => {
   const text = decodeURIComponent(encoded);
-  const titleMatch = text.match(/\*\*([^*]+)\*\*/);
+  const titleMatch = text.match(/[*][*]([^*]+)[*][*]/);
   document.getElementById('t-titolo').value = titleMatch ? titleMatch[1].trim() : 'Template IA';
   document.getElementById('t-data').value = '';
   document.getElementById('t-tipo').value = 'template';
