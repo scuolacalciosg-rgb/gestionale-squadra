@@ -396,11 +396,12 @@
           <button class="btn btn-primary" onclick="saveApiKeyBar()" style="font-size:12px;padding:6px 12px;flex-shrink:0"><i class="ti ti-check"></i> Salva</button>
         </div>
         <!-- Quick actions -->
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn" onclick="iaQuickPrompt('crea_allenamento')"><i class="ti ti-calendar-plus"></i> Crea allenamento</button>
-          <button class="btn" onclick="iaQuickPrompt('consiglia_esercizi')"><i class="ti ti-barbell"></i> Consiglia esercizi</button>
-          <button class="btn" onclick="iaQuickPrompt('analizza_stats')"><i class="ti ti-chart-bar"></i> Analizza statistiche</button>
-          <button class="btn" onclick="iaQuickPrompt('suggerisci_obiettivi')"><i class="ti ti-target"></i> Suggerisci obiettivi</button>
+          <button class="btn" onclick="openIAExerciseModal()"><i class="ti ti-barbell"></i> Crea esercizio</button>
+          <button class="btn" onclick="iaQuickPrompt('crea_template')"><i class="ti ti-template"></i> Crea template</button>
+          <button class="btn" onclick="iaQuickPrompt('analizza_stats')"><i class="ti ti-chart-bar"></i> Analizza stats</button>
+          <button class="btn" onclick="iaQuickPrompt('suggerisci_obiettivi')"><i class="ti ti-target"></i> Obiettivi</button>
         </div>
         <!-- Chat area -->
         <div id="ia-messages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;min-height:200px;padding:4px"></div>
@@ -556,7 +557,7 @@
     <div class="form-grid2">
       <div class="form-group"><label class="form-label">Luogo</label><input type="text" id="t-luogo" placeholder="Es. Campo principale"></div>
       <div class="form-group"><label class="form-label">Tipo sessione</label>
-        <select id="t-tipo"><option>Normale</option><option>Tecnica di base</option><option>Partita</option><option>Tattica</option><option>Fisico</option></select>
+        <select id="t-tipo"><option>Normale</option><option>Tecnica di base</option><option>Partita</option><option>Tattica</option><option>Fisico</option><option value="template">⭐ Template (senza data)</option></select>
       </div>
     </div>
     <div class="form-group">
@@ -664,6 +665,41 @@
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modal-obiettivo')">Annulla</button>
       <button class="btn btn-primary" id="obj-save-btn" onclick="saveObiettivo()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- IA ESERCIZIO MODAL -->
+<div class="modal-overlay" id="modal-ia-exercise">
+  <div class="modal" style="width:440px">
+    <div class="modal-title">Crea esercizio con IA</div>
+    <div class="form-group">
+      <label class="form-label">Categoria</label>
+      <select id="ia-ex-categoria">
+        <option>Riscaldamento</option>
+        <option>Coordinativo</option>
+        <option>Passaggi</option>
+        <option>Conduzione</option>
+        <option>Velocità</option>
+        <option>Tiro</option>
+        <option>Situazioni</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Numero giocatori (opzionale)</label>
+      <input type="text" id="ia-ex-giocatori" placeholder="Es. 8-12">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Durata (minuti)</label>
+      <input type="number" id="ia-ex-durata" value="15" min="5" max="45">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note aggiuntive (opzionale)</label>
+      <input type="text" id="ia-ex-note" placeholder="Es. con coni, per migliorare il primo tocco...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-ia-exercise')">Annulla</button>
+      <button class="btn btn-primary" onclick="iaGeneraEsercizio()"><i class="ti ti-robot"></i> Genera con IA</button>
     </div>
   </div>
 </div>
@@ -971,8 +1007,17 @@ function renderTrainings() {
   };
   const el = document.getElementById('training-list');
   const dash = document.getElementById('dash-trainings');
+  const templates = sorted.filter(t=>t.tipo==='template');
+  const normali = sorted.filter(t=>t.tipo!=='template');
   if(!sorted.length){el.innerHTML=`<div class="empty"><i class="ti ti-calendar"></i>Nessun allenamento.</div>`;dash.innerHTML=`<div style="font-size:13px;color:var(--text3)">Nessun allenamento.</div>`;return;}
-  el.innerHTML = sorted.map(trainHTML).join('');
+  let trainHtml = '';
+  if(templates.length) {
+    trainHtml += `<div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:4px">⭐ Template riutilizzabili</div>`;
+    trainHtml += templates.map(trainHTML).join('');
+    trainHtml += `<div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:16px">📅 Allenamenti programmati</div>`;
+  }
+  trainHtml += normali.map(trainHTML).join('');
+  el.innerHTML = trainHtml;
   const upcoming = sorted.filter(t=>t.data>=t0).slice(0,3);
   dash.innerHTML = upcoming.length ? upcoming.map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><div style="font-weight:600;font-size:13px;min-width:90px">${fmtDate(t.data)}</div><div style="font-size:13px">${t.titolo}</div><div style="font-size:12px;color:var(--text3);margin-left:auto">${t.ora||''}</div></div>`).join('') : `<div style="font-size:13px;color:var(--text3)">Nessun allenamento prossimo.</div>`;
   // refresh presenze filter
@@ -1866,10 +1911,45 @@ const iaSystemPrompt = () => {
 };
 
 const iaQuickPrompts = {
-  crea_allenamento: 'Crea un allenamento completo di 60 minuti adatto alla nostra squadra. Specifica ogni esercizio con nome, durata e descrizione.',
-  consiglia_esercizi: 'Consiglia 5 esercizi adatti alla nostra squadra scegliendo dal nostro database o suggerendone di nuovi. Spiega perché sono utili.',
-  analizza_stats: `Analizza queste statistiche della nostra squadra e dammi consigli: ${JSON.stringify(Object.values({}).slice(0,5))}`,
+  crea_allenamento: 'Crea un allenamento completo di 60 minuti adatto alla nostra squadra. Specifica ogni esercizio con: **Nome**, durata in minuti, descrizione dettagliata passo per passo.',
+  crea_template: 'Crea un allenamento TEMPLATE (senza data specifica) da riutilizzare più volte. Titolo evocativo, 60-75 minuti, almeno 5 esercizi con nome, durata e descrizione dettagliata. Tema: scegli tu il più utile per la nostra categoria.',
+  analizza_stats: 'Analizza la situazione della nostra squadra e dammi 3 consigli pratici su cosa migliorare negli allenamenti.',
   suggerisci_obiettivi: 'Suggerisci 3 obiettivi stagionali e 3 trimestrali adatti alla nostra categoria. Sii specifico e pratico.'
+};
+
+window.openIAExerciseModal = () => {
+  if(!window._iaApiKey || window._iaApiKey.length < 10) {
+    showApiKeyPrompt();
+    showSection('ia', document.querySelector('.nav-item:nth-child(11)'));
+    return;
+  }
+  openModal('modal-ia-exercise');
+};
+
+window.iaGeneraEsercizio = () => {
+  const cat = document.getElementById('ia-ex-categoria').value;
+  const gioc = document.getElementById('ia-ex-giocatori').value;
+  const dur = document.getElementById('ia-ex-durata').value;
+  const note = document.getElementById('ia-ex-note').value;
+  closeModal('modal-ia-exercise');
+
+  const prompt = `Crea UN singolo esercizio di calcio con queste caratteristiche:
+- Categoria: ${cat}
+- Durata: ${dur} minuti
+${gioc ? `- Numero giocatori: ${gioc}` : ''}
+${note ? `- Note: ${note}` : ''}
+
+Usa ESATTAMENTE questo formato:
+**[Nome esercizio]**
+Categoria: ${cat}
+Durata: ${dur} min
+${gioc ? `Giocatori: ${gioc}` : ''}
+Descrizione: [descrizione dettagliata passo per passo, cosa serve, come si svolge]
+Obiettivo: [cosa sviluppa nei bambini]
+Variante: [una variante per rendere più facile o difficile]`;
+
+  document.getElementById('ia-input').value = prompt;
+  window.sendToIA();
 };
 
 window.iaQuickPrompt = type => {
@@ -1944,7 +2024,7 @@ window.sendToIA = async () => {
     if(loadEl) loadEl.remove();
     renderIAMessages();
 
-    if(reply.includes('**') && (msg.toLowerCase().includes('esercizio') || msg.toLowerCase().includes('crea') || msg.toLowerCase().includes('allenamento'))) {
+    if(reply.includes('**') || reply.length > 200) {
       showSaveToDb(reply);
     }
 
@@ -2042,15 +2122,50 @@ window.initIaKeyBar = () => {
 
 function showSaveToDb(reply) {
   const msgsEl = document.getElementById('ia-messages');
+  const safeReply = encodeURIComponent(reply.slice(0,1000));
   msgsEl.innerHTML += `<div style="background:var(--green-light);border:1px solid var(--green);border-radius:var(--radius);padding:12px;margin-top:8px">
-    <div style="font-size:12px;color:var(--green-dark);margin-bottom:8px;font-weight:500">💡 Vuoi salvare questo nel database?</div>
+    <div style="font-size:12px;color:var(--green-dark);margin-bottom:8px;font-weight:500">💡 Vuoi salvare nel database?</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="saveIAExercise(\`${reply.replace(/`/g,"'").slice(0,500)}\`)"><i class="ti ti-barbell"></i> Salva come esercizio</button>
-      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="saveIATraining(\`${reply.replace(/`/g,"'").slice(0,500)}\`)"><i class="ti ti-calendar"></i> Salva come allenamento</button>
+      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="saveIAExerciseParsed('${safeReply}')"><i class="ti ti-barbell"></i> Salva come esercizio</button>
+      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="saveIATrainingParsed('${safeReply}')"><i class="ti ti-calendar"></i> Salva come template</button>
     </div>
   </div>`;
   msgsEl.scrollTop = msgsEl.scrollHeight;
 }
+
+window.saveIAExerciseParsed = (encoded) => {
+  const text = decodeURIComponent(encoded);
+  // Try to extract name from **Name** pattern
+  const nameMatch = text.match(/\*\*([^*]+)\*\*/);
+  const catMatch = text.match(/Categoria:\s*([^
+]+)/i);
+  const durMatch = text.match(/Durata:\s*(\d+)/i);
+  const descMatch = text.match(/Descrizione:\s*([^
+]+(?:
+(?!Obiettivo|Variante|Categoria|Durata)[^
+]+)*)/i);
+
+  document.getElementById('e-nome').value = nameMatch ? nameMatch[1].trim() : 'Esercizio IA';
+  if(catMatch) document.getElementById('e-cat').value = catMatch[1].trim();
+  if(durMatch) document.getElementById('e-dur').value = durMatch[1];
+  document.getElementById('e-desc').value = descMatch ? descMatch[1].trim() : text.slice(0,300);
+  window._exercisePhotoData = null;
+  document.querySelector('#modal-exercise .modal-title').textContent = 'Salva esercizio IA';
+  openModal('modal-exercise');
+};
+
+window.saveIATrainingParsed = (encoded) => {
+  const text = decodeURIComponent(encoded);
+  const titleMatch = text.match(/\*\*([^*]+)\*\*/);
+  document.getElementById('t-titolo').value = titleMatch ? titleMatch[1].trim() : 'Template IA';
+  document.getElementById('t-data').value = '';
+  document.getElementById('t-tipo').value = 'template';
+  document.getElementById('t-note').value = text.slice(0,800);
+  window._trainingExercises = [];
+  renderTrainingExercises();
+  document.querySelector('#modal-training .modal-title').textContent = 'Salva template allenamento';
+  openModal('modal-training');
+};
 
 window.saveIAExercise = (text) => {
   // Pre-fill exercise modal with IA content
