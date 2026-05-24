@@ -2149,6 +2149,8 @@ window.saveIAExerciseParsed = (encoded) => {
   document.getElementById('e-desc').value = desc || text.slice(0,300);
   window._exercisePhotoData = null;
   document.querySelector('#modal-exercise .modal-title').textContent = 'Salva esercizio IA';
+  document.getElementById('e-edit-key').value = '';  // ensure we create new, not update
+  document.getElementById('e-save-btn').textContent = 'Salva nel database';
   openModal('modal-exercise');
 };
 
@@ -2162,6 +2164,8 @@ window.saveIATrainingParsed = (encoded) => {
   window._trainingExercises = [];
   renderTrainingExercises();
   document.querySelector('#modal-training .modal-title').textContent = 'Salva template allenamento';
+  document.getElementById('t-edit-key').value = '';  // ensure we create new
+  document.getElementById('t-save-btn').textContent = 'Salva template';
   openModal('modal-training');
 };
 
