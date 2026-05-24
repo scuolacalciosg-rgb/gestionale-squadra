@@ -207,19 +207,19 @@
       <div class="team-sub" id="team-sub-display">Stagione 2024/25</div>
     </div>
     <div class="nav">
-      <button class="nav-item active" onclick="showSection('dashboard',this)"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
-      <button class="nav-item" onclick="showSection('rosa',this)"><i class="ti ti-users"></i><span>Rosa</span></button>
-      <button class="nav-item" onclick="showSection('partite',this)"><i class="ti ti-trophy"></i><span>Partite</span></button>
-      <button class="nav-item" onclick="showSection('calendario',this)"><i class="ti ti-calendar-month"></i><span>Calendario</span></button>
-      <button class="nav-item" onclick="showSection('allenamenti',this)"><i class="ti ti-run"></i><span>Allenamenti</span></button>
-      <button class="nav-item" onclick="showSection('presenze',this)"><i class="ti ti-clipboard-check"></i><span>Presenze</span></button>
-      <button class="nav-item" onclick="showSection('esercizi',this)"><i class="ti ti-barbell"></i><span>Esercizi</span></button>
-      <button class="nav-item" onclick="showSection('comunicazioni',this)"><i class="ti ti-speakerphone"></i><span>Comunicazioni</span></button>
-      <button class="nav-item" onclick="showSection('galleria',this)"><i class="ti ti-photo"></i><span>Galleria</span></button>
-      <button class="nav-item" onclick="showSection('statistiche',this)"><i class="ti ti-chart-bar"></i><span>Statistiche</span></button>
-      <button class="nav-item" onclick="showSection('obiettivi',this)"><i class="ti ti-target"></i><span>Obiettivi</span></button>
-      <button class="nav-item" onclick="showSection('ia',this)"><i class="ti ti-robot"></i><span>Assistente IA</span></button>
-      <button class="nav-item" onclick="showSection('impostazioni',this)"><i class="ti ti-settings"></i><span>Impostazioni</span></button>
+      <button class="nav-item active" onclick="window.showSection('dashboard',this)"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
+      <button class="nav-item" onclick="window.showSection('rosa',this)"><i class="ti ti-users"></i><span>Rosa</span></button>
+      <button class="nav-item" onclick="window.showSection('partite',this)"><i class="ti ti-trophy"></i><span>Partite</span></button>
+      <button class="nav-item" onclick="window.showSection('calendario',this)"><i class="ti ti-calendar-month"></i><span>Calendario</span></button>
+      <button class="nav-item" onclick="window.showSection('allenamenti',this)"><i class="ti ti-run"></i><span>Allenamenti</span></button>
+      <button class="nav-item" onclick="window.showSection('presenze',this)"><i class="ti ti-clipboard-check"></i><span>Presenze</span></button>
+      <button class="nav-item" onclick="window.showSection('esercizi',this)"><i class="ti ti-barbell"></i><span>Esercizi</span></button>
+      <button class="nav-item" onclick="window.showSection('comunicazioni',this)"><i class="ti ti-speakerphone"></i><span>Comunicazioni</span></button>
+      <button class="nav-item" onclick="window.showSection('galleria',this)"><i class="ti ti-photo"></i><span>Galleria</span></button>
+      <button class="nav-item" onclick="window.showSection('statistiche',this)"><i class="ti ti-chart-bar"></i><span>Statistiche</span></button>
+      <button class="nav-item" onclick="window.showSection('obiettivi',this)"><i class="ti ti-target"></i><span>Obiettivi</span></button>
+      <button class="nav-item" onclick="window.showSection('ia',this)"><i class="ti ti-robot"></i><span>Assistente IA</span></button>
+      <button class="nav-item" onclick="window.showSection('impostazioni',this)"><i class="ti ti-settings"></i><span>Impostazioni</span></button>
     </div>
     <div class="sidebar-footer">
       <div style="display:flex;align-items:center;gap:6px">
@@ -255,7 +255,7 @@
     <div id="sec-rosa" class="section">
       <div class="topbar">
         <div><div class="page-title">Rosa</div><div class="page-subtitle" id="rosa-count"></div></div>
-        <div class="topbar-actions"><button class="btn btn-primary" onclick="openModal('modal-player')"><i class="ti ti-plus"></i> Aggiungi giocatore</button></div>
+        <div class="topbar-actions"><button class="btn btn-primary" onclick="window.openModal('modal-player')"><i class="ti ti-plus"></i> Aggiungi giocatore</button></div>
       </div>
       <div class="content">
         <div class="card" style="padding:0">
@@ -281,9 +281,9 @@
       <div class="topbar">
         <div><div class="page-title">Calendario</div><div class="page-subtitle" id="cal-month-label"></div></div>
         <div class="topbar-actions">
-          <button class="btn" onclick="calPrev()"><i class="ti ti-chevron-left"></i></button>
-          <button class="btn" onclick="calToday()">Oggi</button>
-          <button class="btn" onclick="calNext()"><i class="ti ti-chevron-right"></i></button>
+          <button class="btn" onclick="window.calPrev()"><i class="ti ti-chevron-left"></i></button>
+          <button class="btn" onclick="window.calToday()">Oggi</button>
+          <button class="btn" onclick="window.calNext()"><i class="ti ti-chevron-right"></i></button>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;padding:24px">
@@ -331,7 +331,7 @@
     <div id="sec-comunicazioni" class="section">
       <div class="topbar">
         <div><div class="page-title">Comunicazioni</div><div class="page-subtitle">Bacheca dello staff</div></div>
-        <div class="topbar-actions"><button class="btn btn-primary" onclick="openModal('modal-news')"><i class="ti ti-plus"></i> Pubblica</button></div>
+        <div class="topbar-actions"><button class="btn btn-primary" onclick="window.openModal('modal-news')"><i class="ti ti-plus"></i> Pubblica</button></div>
       </div>
       <div class="content"><div class="card"><div id="news-list"></div></div></div>
     </div>
@@ -341,7 +341,7 @@
       <div class="topbar">
         <div><div class="page-title">Galleria</div><div class="page-subtitle">Foto e video</div></div>
         <div class="topbar-actions">
-          <label class="btn btn-primary" style="cursor:pointer"><i class="ti ti-upload"></i> Carica <input type="file" accept="image/*,video/*" multiple style="display:none" onchange="handleUpload(event)"></label>
+          <label class="btn btn-primary" style="cursor:pointer"><i class="ti ti-upload"></i> Carica <input type="file" accept="image/*,video/*" multiple style="display:none" onchange="window.handleUpload(event)"></label>
         </div>
       </div>
       <div class="content"><div id="gallery-area"></div></div>
@@ -362,7 +362,7 @@
       <div class="topbar">
         <div><div class="page-title">Obiettivi</div><div class="page-subtitle">Obiettivi stagionali e trimestrali</div></div>
         <div class="topbar-actions">
-          <button class="btn btn-primary" onclick="openModal('modal-obiettivo')"><i class="ti ti-plus"></i> Aggiungi obiettivo</button>
+          <button class="btn btn-primary" onclick="window.openModal('modal-obiettivo')"><i class="ti ti-plus"></i> Aggiungi obiettivo</button>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;padding:24px">
@@ -392,16 +392,16 @@
         <!-- API Key bar -->
         <div id="ia-key-bar" style="background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius);padding:12px;display:flex;align-items:center;gap:10px">
           <i class="ti ti-key" style="color:var(--amber-dark);font-size:18px;flex-shrink:0"></i>
-          <input type="password" id="ia-key-field" placeholder="Incolla qui la tua chiave API OpenRouter (sk-or-...)" style="flex:1;background:transparent;border:none;font-size:13px;color:var(--amber-dark);outline:none" oninput="checkApiKeyBar()">
-          <button class="btn btn-primary" onclick="saveApiKeyBar()" style="font-size:12px;padding:6px 12px;flex-shrink:0"><i class="ti ti-check"></i> Salva</button>
+          <input type="password" id="ia-key-field" placeholder="Incolla qui la tua chiave API OpenRouter (sk-or-...)" style="flex:1;background:transparent;border:none;font-size:13px;color:var(--amber-dark);outline:none" oninput="window.checkApiKeyBar()">
+          <button class="btn btn-primary" onclick="window.saveApiKeyBar()" style="font-size:12px;padding:6px 12px;flex-shrink:0"><i class="ti ti-check"></i> Salva</button>
         </div>
         <!-- Quick actions -->
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn" onclick="iaQuickPrompt('crea_allenamento')"><i class="ti ti-calendar-plus"></i> Crea allenamento</button>
-          <button class="btn" onclick="openIAExerciseModal()"><i class="ti ti-barbell"></i> Crea esercizio</button>
-          <button class="btn" onclick="iaQuickPrompt('crea_template')"><i class="ti ti-template"></i> Crea template</button>
-          <button class="btn" onclick="iaQuickPrompt('analizza_stats')"><i class="ti ti-chart-bar"></i> Analizza stats</button>
-          <button class="btn" onclick="iaQuickPrompt('suggerisci_obiettivi')"><i class="ti ti-target"></i> Obiettivi</button>
+          <button class="btn" onclick="window.iaQuickPrompt('crea_allenamento')"><i class="ti ti-calendar-plus"></i> Crea allenamento</button>
+          <button class="btn" onclick="window.openIAExerciseModal()"><i class="ti ti-barbell"></i> Crea esercizio</button>
+          <button class="btn" onclick="window.iaQuickPrompt('crea_template')"><i class="ti ti-template"></i> Crea template</button>
+          <button class="btn" onclick="window.iaQuickPrompt('analizza_stats')"><i class="ti ti-chart-bar"></i> Analizza stats</button>
+          <button class="btn" onclick="window.iaQuickPrompt('suggerisci_obiettivi')"><i class="ti ti-target"></i> Obiettivi</button>
         </div>
         <!-- Chat area -->
         <div id="ia-messages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;min-height:200px;padding:4px"></div>
@@ -433,7 +433,7 @@
             <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Stagione corrente</div>
             <div id="current-stagione-label" style="font-size:15px;font-weight:600"></div>
           </div>
-          <button class="btn btn-primary" onclick="openModal('modal-chiudi-stagione')" style="margin-bottom:10px"><i class="ti ti-archive"></i> Archivia e inizia nuova stagione</button>
+          <button class="btn btn-primary" onclick="window.openModal('modal-chiudi-stagione')" style="margin-bottom:10px"><i class="ti ti-archive"></i> Archivia e inizia nuova stagione</button>
           <div id="stagioni-archivio-list" style="margin-top:16px"></div>
         </div>
       </div>
@@ -471,7 +471,7 @@
     </div>
     <div class="form-group"><label class="form-label">Nome genitore / tutore</label><input type="text" id="p-genitore" placeholder="Es. Giuseppe Rossi"></div>
     <div class="form-group"><label class="form-label">Contatto giocatore / genitore</label><input type="text" id="p-contatto" placeholder="Es. 333 1234567"></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-player')">Annulla</button><button class="btn btn-primary" onclick="window.addPlayer()">Aggiungi</button></div>
+    <div class="modal-actions"><button class="btn" onclick="window.closeModal('modal-player')">Annulla</button><button class="btn btn-primary" onclick="window.addPlayer()">Aggiungi</button></div>
   </div>
 </div>
 
@@ -479,7 +479,7 @@
 <div class="modal-overlay" id="modal-player-detail">
   <div class="modal" style="width:480px;max-width:95vw">
     <div style="position:relative;text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)">
-      <button class="delete-btn" onclick="closeModal('modal-player-detail')" style="position:absolute;top:0;right:0;font-size:20px"><i class="ti ti-x"></i></button>
+      <button class="delete-btn" onclick="window.closeModal('modal-player-detail')" style="position:absolute;top:0;right:0;font-size:20px"><i class="ti ti-x"></i></button>
       <div id="detail-foto" style="width:120px;height:120px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:600;color:var(--green-dark);overflow:hidden;border:4px solid var(--green);margin:0 auto 14px"></div>
       <div id="detail-nome" style="font-size:22px;font-weight:600"></div>
       <div id="detail-categoria" style="font-size:13px;color:var(--text3);margin-top:3px"></div>
@@ -516,7 +516,7 @@
       <div id="detail-contatto" style="font-size:14px;font-weight:500"></div>
     </div>
     <div class="modal-actions" style="margin-top:16px">
-      <button class="btn" onclick="closeModal('modal-player-detail')">Chiudi</button>
+      <button class="btn" onclick="window.closeModal('modal-player-detail')">Chiudi</button>
       <button class="btn btn-primary" id="pd-edit-btn"><i class="ti ti-pencil"></i> Modifica</button>
     </div>
   </div>
@@ -541,7 +541,7 @@
       <div class="form-group"><label class="form-label">Gol avversari</label><input type="number" id="m-gol-a" min="0" value="0"></div>
     </div>
     <div class="form-group"><label class="form-label">Note / Marcatori</label><textarea id="m-note" placeholder="Es. Gol: Rossi 23'"></textarea></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-match')">Annulla</button><button class="btn btn-primary" id="m-save-btn" onclick="window.saveMatch()">Salva</button></div>
+    <div class="modal-actions"><button class="btn" onclick="window.closeModal('modal-match')">Annulla</button><button class="btn btn-primary" id="m-save-btn" onclick="window.saveMatch()">Salva</button></div>
   </div>
 </div>
 
@@ -563,10 +563,10 @@
     <div class="form-group">
       <label class="form-label">Esercizi (max 5)</label>
       <div id="t-esercizi-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
-      <button class="btn" style="font-size:12px;width:100%" onclick="addEsercizioToTraining()" type="button"><i class="ti ti-plus"></i> Aggiungi esercizio</button>
+      <button class="btn" style="font-size:12px;width:100%" onclick="window.addEsercizioToTraining()" type="button"><i class="ti ti-plus"></i> Aggiungi esercizio</button>
     </div>
     <div class="form-group"><label class="form-label">Note</label><textarea id="t-note" placeholder="Descrizione sessione..."></textarea></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-training')">Annulla</button><button class="btn btn-primary" id="t-save-btn" onclick="window.saveTraining()">Salva</button></div>
+    <div class="modal-actions"><button class="btn" onclick="window.closeModal('modal-training')">Annulla</button><button class="btn btn-primary" id="t-save-btn" onclick="window.saveTraining()">Salva</button></div>
   </div>
 </div>
 
@@ -576,7 +576,7 @@
     <div class="modal-title">Seleziona esercizio</div>
     <input type="text" id="ex-picker-search" placeholder="Cerca esercizio..." oninput="renderExPicker()" style="margin-bottom:12px">
     <div id="ex-picker-list" style="display:flex;flex-direction:column;gap:6px"></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-ex-picker')">Chiudi</button></div>
+    <div class="modal-actions"><button class="btn" onclick="window.closeModal('modal-ex-picker')">Chiudi</button></div>
   </div>
 </div>
 
@@ -601,7 +601,7 @@
     </div>
     <div class="form-group"><label class="form-label">Numero giocatori</label><input type="text" id="e-players" placeholder="Es. 10-14"></div>
     <div class="form-group"><label class="form-label">Descrizione</label><textarea id="e-desc" placeholder="Come si svolge..." style="min-height:100px"></textarea></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-exercise')">Annulla</button><button class="btn btn-primary" id="e-save-btn" onclick="window.saveExercise()">Salva</button></div>
+    <div class="modal-actions"><button class="btn" onclick="window.closeModal('modal-exercise')">Annulla</button><button class="btn btn-primary" id="e-save-btn" onclick="window.saveExercise()">Salva</button></div>
   </div>
 </div>
 
@@ -611,7 +611,7 @@
     <div class="form-group"><label class="form-label">Titolo *</label><input type="text" id="n-titolo" placeholder="Es. Convocazioni domenica"></div>
     <div class="form-group"><label class="form-label">Messaggio</label><textarea id="n-body" placeholder="Scrivi il messaggio..."></textarea></div>
     <div class="form-group"><label class="form-label">Autore</label><input type="text" id="n-autore" placeholder="Mister / Dirigente"></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-news')">Annulla</button><button class="btn btn-primary" onclick="window.addNews()">Pubblica</button></div>
+    <div class="modal-actions"><button class="btn" onclick="window.closeModal('modal-news')">Annulla</button><button class="btn btn-primary" onclick="window.addNews()">Pubblica</button></div>
   </div>
 </div>
 
@@ -622,7 +622,7 @@
     <input type="hidden" id="obj-edit-key" value="">
     <div class="form-group">
       <label class="form-label">Tipo obiettivo</label>
-      <select id="obj-tipo" onchange="toggleObjGiocatore()">
+      <select id="obj-tipo" onchange="window.toggleObjGiocatore()">
         <option value="stagionale">Stagionale (squadra)</option>
         <option value="trimestrale">Trimestrale (squadra)</option>
         <option value="individuale">Individuale (giocatore)</option>
@@ -663,7 +663,7 @@
       </select>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal('modal-obiettivo')">Annulla</button>
+      <button class="btn" onclick="window.closeModal('modal-obiettivo')">Annulla</button>
       <button class="btn btn-primary" id="obj-save-btn" onclick="window.saveObiettivo()">Salva</button>
     </div>
   </div>
@@ -698,7 +698,7 @@
       <input type="text" id="ia-ex-note" placeholder="Es. con coni, per migliorare il primo tocco...">
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal('modal-ia-exercise')">Annulla</button>
+      <button class="btn" onclick="window.closeModal('modal-ia-exercise')">Annulla</button>
       <button class="btn btn-primary" onclick="iaGeneraEsercizio()"><i class="ti ti-robot"></i> Genera con IA</button>
     </div>
   </div>
@@ -717,7 +717,7 @@
       <input type="text" id="nuova-stagione-input" placeholder="Es. 2025/26">
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal('modal-chiudi-stagione')">Annulla</button>
+      <button class="btn" onclick="window.closeModal('modal-chiudi-stagione')">Annulla</button>
       <button class="btn btn-primary" onclick="window.archiviaStagione()"><i class="ti ti-archive"></i> Archivia</button>
     </div>
   </div>
@@ -731,7 +731,7 @@
         <div id="sd2-titolo" style="font-size:20px;font-weight:600"></div>
         <div id="sd2-subtitle" style="font-size:13px;color:var(--text3);margin-top:2px"></div>
       </div>
-      <button class="delete-btn" onclick="closeModal('modal-stagione-detail')" style="font-size:22px"><i class="ti ti-x"></i></button>
+      <button class="delete-btn" onclick="window.closeModal('modal-stagione-detail')" style="font-size:22px"><i class="ti ti-x"></i></button>
     </div>
     <div id="sd2-content"></div>
   </div>
@@ -747,7 +747,7 @@
         <div id="sd-ruolo" style="font-size:13px;color:var(--text3);margin-top:2px"></div>
         <div id="sd-stato" style="margin-top:6px"></div>
       </div>
-      <button class="delete-btn" onclick="closeModal('modal-stats-detail')" style="font-size:22px"><i class="ti ti-x"></i></button>
+      <button class="delete-btn" onclick="window.closeModal('modal-stats-detail')" style="font-size:22px"><i class="ti ti-x"></i></button>
     </div>
 
     <!-- big stats -->
@@ -787,7 +787,7 @@
     </div>
 
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal('modal-stats-detail')">Chiudi</button>
+      <button class="btn" onclick="window.closeModal('modal-stats-detail')">Chiudi</button>
     </div>
   </div>
 </div>
@@ -801,7 +801,7 @@
         <div id="td-meta" style="font-size:13px;color:var(--text3);margin-top:4px"></div>
         <div id="td-tipo" style="margin-top:8px"></div>
       </div>
-      <button class="delete-btn" onclick="closeModal('modal-training-detail')" style="font-size:22px;flex-shrink:0"><i class="ti ti-x"></i></button>
+      <button class="delete-btn" onclick="window.closeModal('modal-training-detail')" style="font-size:22px;flex-shrink:0"><i class="ti ti-x"></i></button>
     </div>
 
     <!-- info row -->
@@ -833,7 +833,7 @@
     </div>
 
     <div class="modal-actions" style="margin-top:20px">
-      <button class="btn" onclick="closeModal('modal-training-detail')">Chiudi</button>
+      <button class="btn" onclick="window.closeModal('modal-training-detail')">Chiudi</button>
       <button class="btn btn-primary" id="td-edit-btn" onclick=""><i class="ti ti-pencil"></i> Modifica</button>
     </div>
   </div>
@@ -1484,7 +1484,7 @@ window.renderTrainingExercises = () => {
       <span style="flex:1">${e.nome}</span>
       <span class="badge badge-gray" style="font-size:11px">${e.cat}</span>
       <span class="badge badge-gray" style="font-size:11px">${e.dur}min</span>
-      <button class="delete-btn" onclick="window._trainingExercises.splice(${i},1);renderTrainingExercises()"><i class="ti ti-x" style="font-size:13px"></i></button>
+      <button class="delete-btn" onclick="window._trainingExercises.splice(${i},1);window.renderTrainingExercises()"><i class="ti ti-x" style="font-size:13px"></i></button>
     </div>`).join('');
 };
 
@@ -2050,7 +2050,7 @@ function showApiKeyPrompt() {
     </div>
     <div style="display:flex;gap:8px">
       <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="flex:1;font-size:13px" autofocus>
-      <button class="btn btn-primary" onclick="saveApiKey()" style="font-size:13px;padding:8px 16px"><i class="ti ti-check"></i> Salva</button>
+      <button class="btn btn-primary" onclick="window.saveApiKey()" style="font-size:13px;padding:8px 16px"><i class="ti ti-check"></i> Salva</button>
     </div>
     <div style="font-size:11px;color:var(--amber-dark);margin-top:8px">La chiave viene salvata nel tuo browser e non viene condivisa.</div>
   </div>`;
@@ -2095,7 +2095,7 @@ window.saveApiKeyBar = () => {
   const bar = document.getElementById('ia-key-bar');
   bar.style.background = 'var(--green-light)';
   bar.style.borderColor = 'var(--green)';
-  bar.innerHTML = '<i class="ti ti-circle-check" style="color:var(--green-dark);font-size:18px"></i><span style="color:var(--green-dark);font-size:13px;font-weight:500">Chiave API salvata! Puoi usare l\'assistente IA.</span><button class="btn" onclick="resetApiKey()" style="font-size:11px;padding:4px 8px;margin-left:auto">Cambia chiave</button>';
+  bar.innerHTML = '<i class="ti ti-circle-check" style="color:var(--green-dark);font-size:18px"></i><span style="color:var(--green-dark);font-size:13px;font-weight:500">Chiave API salvata! Puoi usare l\'assistente IA.</span><button class="btn" onclick="window.resetApiKey()" style="font-size:11px;padding:4px 8px;margin-left:auto">Cambia chiave</button>';
   toast('Chiave API salvata!');
 };
 
@@ -2105,7 +2105,7 @@ window.resetApiKey = () => {
   const bar = document.getElementById('ia-key-bar');
   bar.style.background = 'var(--amber-light)';
   bar.style.borderColor = 'var(--amber)';
-  bar.innerHTML = '<i class="ti ti-key" style="color:var(--amber-dark);font-size:18px;flex-shrink:0"></i><input type="password" id="ia-key-field" placeholder="Incolla qui la tua chiave API OpenRouter (sk-or-...)" style="flex:1;background:transparent;border:none;font-size:13px;color:var(--amber-dark);outline:none" oninput="checkApiKeyBar()"><button class="btn btn-primary" onclick="saveApiKeyBar()" style="font-size:12px;padding:6px 12px;flex-shrink:0"><i class="ti ti-check"></i> Salva</button>';
+  bar.innerHTML = '<i class="ti ti-key" style="color:var(--amber-dark);font-size:18px;flex-shrink:0"></i><input type="password" id="ia-key-field" placeholder="Incolla qui la tua chiave API OpenRouter (sk-or-...)" style="flex:1;background:transparent;border:none;font-size:13px;color:var(--amber-dark);outline:none" oninput="window.checkApiKeyBar()"><button class="btn btn-primary" onclick="window.saveApiKeyBar()" style="font-size:12px;padding:6px 12px;flex-shrink:0"><i class="ti ti-check"></i> Salva</button>';
 };
 
 // Auto-show saved key status on load
@@ -2115,7 +2115,7 @@ window.initIaKeyBar = () => {
     if(bar) {
       bar.style.background = 'var(--green-light)';
       bar.style.borderColor = 'var(--green)';
-      bar.innerHTML = '<i class="ti ti-circle-check" style="color:var(--green-dark);font-size:18px"></i><span style="color:var(--green-dark);font-size:13px;font-weight:500">Chiave API attiva ✓</span><button class="btn" onclick="resetApiKey()" style="font-size:11px;padding:4px 8px;margin-left:auto">Cambia chiave</button>';
+      bar.innerHTML = '<i class="ti ti-circle-check" style="color:var(--green-dark);font-size:18px"></i><span style="color:var(--green-dark);font-size:13px;font-weight:500">Chiave API attiva ✓</span><button class="btn" onclick="window.resetApiKey()" style="font-size:11px;padding:4px 8px;margin-left:auto">Cambia chiave</button>';
     }
   }
 };
@@ -2126,8 +2126,8 @@ function showSaveToDb(reply) {
   msgsEl.innerHTML += `<div style="background:var(--green-light);border:1px solid var(--green);border-radius:var(--radius);padding:12px;margin-top:8px">
     <div style="font-size:12px;color:var(--green-dark);margin-bottom:8px;font-weight:500">💡 Vuoi salvare nel database?</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="saveIAExerciseParsed('${safeReply}')"><i class="ti ti-barbell"></i> Salva come esercizio</button>
-      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="saveIATrainingParsed('${safeReply}')"><i class="ti ti-calendar"></i> Salva come template</button>
+      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="window.saveIAExerciseParsed('${safeReply}')"><i class="ti ti-barbell"></i> Salva come esercizio</button>
+      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="window.saveIATrainingParsed('${safeReply}')"><i class="ti ti-calendar"></i> Salva come template</button>
     </div>
   </div>`;
   msgsEl.scrollTop = msgsEl.scrollHeight;
