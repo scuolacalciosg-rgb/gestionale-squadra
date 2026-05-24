@@ -2137,36 +2137,48 @@ window.saveIAExerciseParsed = (encoded) => {
   const text = decodeURIComponent(encoded);
   const nameMatch = text.match(/[*][*]([^*]+)[*][*]/);
   const lines = text.split('\n');
-  let cat = '', dur = '', desc = '';
+  let cat = '', dur = 15, desc = '';
   lines.forEach(line => {
     if(line.match(/^Categoria:/i)) cat = line.replace(/^Categoria:/i,'').trim();
-    if(line.match(/^Durata:/i)) { const m = line.match(/\d+/); if(m) dur = m[0]; }
+    if(line.match(/^Durata:/i)) { const m = line.match(/\d+/); if(m) dur = parseInt(m[0]); }
     if(line.match(/^Descrizione:/i)) desc = line.replace(/^Descrizione:/i,'').trim();
   });
-  document.getElementById('e-nome').value = nameMatch ? nameMatch[1].trim() : 'Esercizio IA';
-  if(cat) document.getElementById('e-cat').value = cat;
-  if(dur) document.getElementById('e-dur').value = dur;
-  document.getElementById('e-desc').value = desc || text.slice(0,300);
-  window._exercisePhotoData = null;
-  document.querySelector('#modal-exercise .modal-title').textContent = 'Salva esercizio IA';
-  document.getElementById('e-edit-key').value = '';  // ensure we create new, not update
-  document.getElementById('e-save-btn').textContent = 'Salva nel database';
-  openModal('modal-exercise');
+  const nome = nameMatch ? nameMatch[1].trim() : 'Esercizio IA ' + new Date().toLocaleDateString('it-IT');
+  // Save directly to Firebase without opening modal
+  push(ref(db,'exercises'), {
+    nome,
+    cat: cat || 'Tecnica',
+    dur: dur || 15,
+    players: '',
+    desc: desc || text.slice(0,500),
+    foto: '',
+    ts: Date.now()
+  }).then(() => {
+    toast('Esercizio salvato nel database!');
+  }).catch(err => {
+    toast('Errore nel salvataggio: ' + err.message);
+  });
 };
 
 window.saveIATrainingParsed = (encoded) => {
   const text = decodeURIComponent(encoded);
   const titleMatch = text.match(/[*][*]([^*]+)[*][*]/);
-  document.getElementById('t-titolo').value = titleMatch ? titleMatch[1].trim() : 'Template IA';
-  document.getElementById('t-data').value = '';
-  document.getElementById('t-tipo').value = 'template';
-  document.getElementById('t-note').value = text.slice(0,800);
-  window._trainingExercises = [];
-  renderTrainingExercises();
-  document.querySelector('#modal-training .modal-title').textContent = 'Salva template allenamento';
-  document.getElementById('t-edit-key').value = '';  // ensure we create new
-  document.getElementById('t-save-btn').textContent = 'Salva template';
-  openModal('modal-training');
+  const titolo = titleMatch ? titleMatch[1].trim() : 'Template IA ' + new Date().toLocaleDateString('it-IT');
+  // Save directly to Firebase
+  push(ref(db,'trainings'), {
+    titolo,
+    data: '',
+    ora: '',
+    luogo: '',
+    tipo: 'template',
+    note: text.slice(0,1000),
+    esercizi: [],
+    ts: Date.now()
+  }).then(() => {
+    toast('Template salvato negli allenamenti!');
+  }).catch(err => {
+    toast('Errore nel salvataggio: ' + err.message);
+  });
 };
 
 window.saveIAExercise = (text) => {
