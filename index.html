@@ -423,7 +423,7 @@
           <div class="form-group"><label class="form-label">Stagione</label><input type="text" id="set-stagione" placeholder="Es. 2024/25"></div>
           <div class="form-group"><label class="form-label">Allenatore</label><input type="text" id="set-mister" placeholder="Nome cognome"></div>
           <div class="form-group"><label class="form-label">Campo di gioco</label><input type="text" id="set-campo" placeholder="Es. Campo Comunale"></div>
-          <button class="btn btn-primary" onclick="saveSettings()"><i class="ti ti-device-floppy"></i> Salva</button>
+          <button class="btn btn-primary" onclick="window.saveSettings()"><i class="ti ti-device-floppy"></i> Salva</button>
         </div>
 
         <div class="card" style="max-width:480px;margin-top:16px">
@@ -471,7 +471,7 @@
     </div>
     <div class="form-group"><label class="form-label">Nome genitore / tutore</label><input type="text" id="p-genitore" placeholder="Es. Giuseppe Rossi"></div>
     <div class="form-group"><label class="form-label">Contatto giocatore / genitore</label><input type="text" id="p-contatto" placeholder="Es. 333 1234567"></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-player')">Annulla</button><button class="btn btn-primary" onclick="addPlayer()">Aggiungi</button></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-player')">Annulla</button><button class="btn btn-primary" onclick="window.addPlayer()">Aggiungi</button></div>
   </div>
 </div>
 
@@ -541,7 +541,7 @@
       <div class="form-group"><label class="form-label">Gol avversari</label><input type="number" id="m-gol-a" min="0" value="0"></div>
     </div>
     <div class="form-group"><label class="form-label">Note / Marcatori</label><textarea id="m-note" placeholder="Es. Gol: Rossi 23'"></textarea></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-match')">Annulla</button><button class="btn btn-primary" id="m-save-btn" onclick="saveMatch()">Salva</button></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-match')">Annulla</button><button class="btn btn-primary" id="m-save-btn" onclick="window.saveMatch()">Salva</button></div>
   </div>
 </div>
 
@@ -566,7 +566,7 @@
       <button class="btn" style="font-size:12px;width:100%" onclick="addEsercizioToTraining()" type="button"><i class="ti ti-plus"></i> Aggiungi esercizio</button>
     </div>
     <div class="form-group"><label class="form-label">Note</label><textarea id="t-note" placeholder="Descrizione sessione..."></textarea></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-training')">Annulla</button><button class="btn btn-primary" id="t-save-btn" onclick="saveTraining()">Salva</button></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-training')">Annulla</button><button class="btn btn-primary" id="t-save-btn" onclick="window.saveTraining()">Salva</button></div>
   </div>
 </div>
 
@@ -601,7 +601,7 @@
     </div>
     <div class="form-group"><label class="form-label">Numero giocatori</label><input type="text" id="e-players" placeholder="Es. 10-14"></div>
     <div class="form-group"><label class="form-label">Descrizione</label><textarea id="e-desc" placeholder="Come si svolge..." style="min-height:100px"></textarea></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-exercise')">Annulla</button><button class="btn btn-primary" id="e-save-btn" onclick="saveExercise()">Salva</button></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-exercise')">Annulla</button><button class="btn btn-primary" id="e-save-btn" onclick="window.saveExercise()">Salva</button></div>
   </div>
 </div>
 
@@ -611,7 +611,7 @@
     <div class="form-group"><label class="form-label">Titolo *</label><input type="text" id="n-titolo" placeholder="Es. Convocazioni domenica"></div>
     <div class="form-group"><label class="form-label">Messaggio</label><textarea id="n-body" placeholder="Scrivi il messaggio..."></textarea></div>
     <div class="form-group"><label class="form-label">Autore</label><input type="text" id="n-autore" placeholder="Mister / Dirigente"></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-news')">Annulla</button><button class="btn btn-primary" onclick="addNews()">Pubblica</button></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-news')">Annulla</button><button class="btn btn-primary" onclick="window.addNews()">Pubblica</button></div>
   </div>
 </div>
 
@@ -664,7 +664,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modal-obiettivo')">Annulla</button>
-      <button class="btn btn-primary" id="obj-save-btn" onclick="saveObiettivo()">Salva</button>
+      <button class="btn btn-primary" id="obj-save-btn" onclick="window.saveObiettivo()">Salva</button>
     </div>
   </div>
 </div>
