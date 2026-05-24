@@ -2120,18 +2120,29 @@ window.initIaKeyBar = () => {
   }
 };
 
+// Store last IA reply for saving
+window._lastIAReply = '';
+
 function showSaveToDb(reply) {
+  window._lastIAReply = reply;
   const msgsEl = document.getElementById('ia-messages');
-  const safeReply = encodeURIComponent(reply.slice(0,1000));
   msgsEl.innerHTML += `<div style="background:var(--green-light);border:1px solid var(--green);border-radius:var(--radius);padding:12px;margin-top:8px">
     <div style="font-size:12px;color:var(--green-dark);margin-bottom:8px;font-weight:500">💡 Vuoi salvare nel database?</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="window.saveIAExerciseParsed('${safeReply}')"><i class="ti ti-barbell"></i> Salva come esercizio</button>
-      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="window.saveIATrainingParsed('${safeReply}')"><i class="ti ti-calendar"></i> Salva come template</button>
+      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="window.saveLastIAExercise()"><i class="ti ti-barbell"></i> Salva come esercizio</button>
+      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="window.saveLastIATraining()"><i class="ti ti-calendar"></i> Salva come template</button>
     </div>
   </div>`;
   msgsEl.scrollTop = msgsEl.scrollHeight;
 }
+
+window.saveLastIAExercise = () => {
+  window.saveIAExerciseParsed(encodeURIComponent(window._lastIAReply.slice(0,1000)));
+};
+
+window.saveLastIATraining = () => {
+  window.saveIATrainingParsed(encodeURIComponent(window._lastIAReply.slice(0,1000)));
+};
 
 window.saveIAExerciseParsed = (encoded) => {
   const text = decodeURIComponent(encoded);
