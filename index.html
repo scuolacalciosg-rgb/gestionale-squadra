@@ -2135,20 +2135,18 @@ function showSaveToDb(reply) {
 
 window.saveIAExerciseParsed = (encoded) => {
   const text = decodeURIComponent(encoded);
-  // Try to extract name from **Name** pattern
   const nameMatch = text.match(/[*][*]([^*]+)[*][*]/);
-  const catMatch = text.match(/Categoria:\s*([^
-]+)/i);
-  const durMatch = text.match(/Durata:[\s]*(\d+)/i);
-  const descMatch = text.match(/Descrizione:\s*([^
-]+(?:
-(?!Obiettivo|Variante|Categoria|Durata)[^
-]+)*)/i);
-
+  const lines = text.split('\n');
+  let cat = '', dur = '', desc = '';
+  lines.forEach(line => {
+    if(line.match(/^Categoria:/i)) cat = line.replace(/^Categoria:/i,'').trim();
+    if(line.match(/^Durata:/i)) { const m = line.match(/\d+/); if(m) dur = m[0]; }
+    if(line.match(/^Descrizione:/i)) desc = line.replace(/^Descrizione:/i,'').trim();
+  });
   document.getElementById('e-nome').value = nameMatch ? nameMatch[1].trim() : 'Esercizio IA';
-  if(catMatch) document.getElementById('e-cat').value = catMatch[1].trim();
-  if(durMatch) document.getElementById('e-dur').value = durMatch[1];
-  document.getElementById('e-desc').value = descMatch ? descMatch[1].trim() : text.slice(0,300);
+  if(cat) document.getElementById('e-cat').value = cat;
+  if(dur) document.getElementById('e-dur').value = dur;
+  document.getElementById('e-desc').value = desc || text.slice(0,300);
   window._exercisePhotoData = null;
   document.querySelector('#modal-exercise .modal-title').textContent = 'Salva esercizio IA';
   openModal('modal-exercise');
