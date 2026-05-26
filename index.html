@@ -554,7 +554,16 @@
       <div class="form-group"><label class="form-label">Gol nostri</label><input type="number" id="m-gol-n" min="0" value="0"></div>
       <div class="form-group"><label class="form-label">Gol avversari</label><input type="number" id="m-gol-a" min="0" value="0"></div>
     </div>
-    <div class="form-group"><label class="form-label">Note / Marcatori</label><textarea id="m-note" placeholder="Es. Gol: Rossi 23'"></textarea></div>
+    <div class="form-group">
+      <label class="form-label">Marcatori</label>
+      <div id="m-marcatori-list" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px">
+        <select id="m-marcatore-giocatore" style="flex:1"></select>
+        <input type="number" id="m-marcatore-gol" value="1" min="1" max="10" style="width:60px">
+        <button class="btn" onclick="window.addMarcatoreM()" style="flex-shrink:0"><i class="ti ti-plus"></i></button>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Note</label><textarea id="m-note" placeholder="Es. Ottima prestazione..."></textarea></div>
     <div class="modal-actions"><button class="btn" onclick="window.closeModal('modal-match')">Annulla</button><button class="btn btn-primary" id="m-save-btn" onclick="window.saveMatch()">Salva</button></div>
   </div>
 </div>
@@ -764,6 +773,15 @@
       <div class="form-group"><label class="form-label">Ora</label><input type="time" id="pt-ora" value="10:00"></div>
     </div>
     <div class="form-group"><label class="form-label">Fase</label><select id="pt-fase"><option>Girone</option><option>Quarti di finale</option><option>Semifinale</option><option>Finale 3° posto</option><option>Finale</option></select></div>
+    <div class="form-group">
+      <label class="form-label">Marcatori (nostra squadra)</label>
+      <div id="pt-marcatori-list" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px">
+        <select id="pt-marcatore-giocatore" style="flex:1"></select>
+        <input type="number" id="pt-marcatore-gol" value="1" min="1" max="10" style="width:60px">
+        <button class="btn" onclick="window.addMarcatorePT()" style="flex-shrink:0"><i class="ti ti-plus"></i></button>
+      </div>
+    </div>
     <div class="form-group">
       <label class="form-label">Note partita (per analisi IA)</label>
       <textarea id="pt-note" placeholder="Es. Buona prestazione nel primo tempo, difficoltà nel pressing alto, ottimo portiere avversario..." style="min-height:90px"></textarea>
@@ -1064,6 +1082,7 @@ function renderMatches() {
       <div>
         <div class="match-teams">Noi vs ${m.avv}</div>
         <div class="match-info">${fmtDate(m.data)} ${m.ora||''} · ${m.luogo}${m.comp?' · '+m.comp:''}${m.tipo&&m.tipo!=='Campionato'?' · <span class="badge badge-gray" style="font-size:10px">'+m.tipo+'</span>':''}</div>
+        ${m.marcatori&&m.marcatori.length?`<div style="font-size:12px;color:var(--green-dark);margin-top:4px">⚽ ${m.marcatori.map(x=>x.nome+(x.gol>1?' ×'+x.gol:'')).join(', ')}</div>`:''}
         ${m.note?`<div style="font-size:12px;color:var(--text3);margin-top:4px">${m.note}</div>`:''}
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -2339,6 +2358,64 @@ function renderIAMessages() {
 }
 
 // ============================================================
+// MARCATORI
+// ============================================================
+window._marcatoriM = []; // for normal matches
+window._marcatoriPT = []; // for torneo matches
+
+function renderMarcatoriList(listId, arr, addFn) {
+  const el = document.getElementById(listId);
+  if(!el) return;
+  if(!arr.length) { el.innerHTML='<div style="font-size:12px;color:var(--text3)">Nessun marcatore aggiunto</div>'; return; }
+  el.innerHTML = arr.map((m,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2);border-radius:var(--radius);margin-bottom:6px">
+      <span style="flex:1;font-size:13px">⚽ ${m.nome} × ${m.gol}</span>
+      <button class="delete-btn" onclick="${addFn}.splice(${i},1);renderMarcatoriList('${listId}',${addFn},'${addFn}')"><i class="ti ti-x" style="font-size:13px"></i></button>
+    </div>`).join('');
+}
+
+function populateMarcatoreSelect(selectId) {
+  const sel = document.getElementById(selectId);
+  if(!sel) return;
+  const players = Object.values(state.players||{}).sort((a,b)=>a.nome.localeCompare(b.nome));
+  sel.innerHTML = players.map(p=>`<option value="${p._key||''}" data-nome="${p.nome}">${p.nome}</option>`).join('');
+}
+
+window.addMarcatoreM = () => {
+  const sel = document.getElementById('m-marcatore-giocatore');
+  const gol = parseInt(document.getElementById('m-marcatore-gol').value)||1;
+  if(!sel.value) return;
+  const nome = sel.options[sel.selectedIndex].dataset.nome || sel.options[sel.selectedIndex].text;
+  // Check if already exists - add gol
+  const existing = window._marcatoriM.find(m=>m.key===sel.value);
+  if(existing) { existing.gol+=gol; }
+  else { window._marcatoriM.push({key:sel.value, nome, gol}); }
+  renderMarcatoriList('m-marcatori-list', window._marcatoriM, 'window._marcatoriM');
+};
+
+window.addMarcatorePT = () => {
+  const sel = document.getElementById('pt-marcatore-giocatore');
+  const gol = parseInt(document.getElementById('pt-marcatore-gol').value)||1;
+  if(!sel.value) return;
+  const nome = sel.options[sel.selectedIndex].dataset.nome || sel.options[sel.selectedIndex].text;
+  const existing = window._marcatoriPT.find(m=>m.key===sel.value);
+  if(existing) { existing.gol+=gol; }
+  else { window._marcatoriPT.push({key:sel.value, nome, gol}); }
+  renderMarcatoriList('pt-marcatori-list', window._marcatoriPT, 'window._marcatoriPT');
+};
+
+function updatePlayerGoals(marcatori) {
+  // Update gol counter for each player in Firebase
+  marcatori.forEach(m => {
+    if(!m.key) return;
+    const player = (state.players||{})[m.key];
+    if(!player) return;
+    const newGol = (player.gol||0) + m.gol;
+    update(ref(db,'players/'+m.key), {gol: newGol});
+  });
+}
+
+// ============================================================
 // TORNEI
 // ============================================================
 let _torneoSquadre = [];
@@ -2520,6 +2597,9 @@ window.openPartitaTorneoModal = torneoKey => {
   document.getElementById('pt-gol-ospite').value='0';
   document.getElementById('pt-data').value='';
   document.getElementById('pt-note').value='';
+  window._marcatoriPT = [];
+  renderMarcatoriList('pt-marcatori-list', window._marcatoriPT, 'window._marcatoriPT');
+  populateMarcatoreSelect('pt-marcatore-giocatore');
   window.openModal('modal-partita-torneo');
 };
 
@@ -2557,13 +2637,21 @@ window.savePartitaTorneo = () => {
     ora: document.getElementById('pt-ora').value,
     fase: document.getElementById('pt-fase').value,
     note: document.getElementById('pt-note').value,
+    marcatori: window._marcatoriPT,
     ts: Date.now()
   };
   const path = `tornei/${torneoKey}/partite`;
-  if(editKey) { update(ref(db,path+'/'+editKey), data_obj); toast('Partita aggiornata!'); }
-  else { push(ref(db,path), data_obj); toast('Partita salvata!'); }
+  if(editKey) {
+    update(ref(db,path+'/'+editKey), data_obj);
+    toast('Partita aggiornata!');
+  } else {
+    push(ref(db,path), data_obj);
+    // Update player goal stats only on new match
+    if(window._marcatoriPT.length) updatePlayerGoals(window._marcatoriPT);
+    toast('Partita salvata!');
+  }
+  window._marcatoriPT = [];
   window.closeModal('modal-partita-torneo');
-  // Refresh torneo detail
   setTimeout(()=>{ renderClassifica(torneoKey); renderPartiteTorneo(torneoKey); }, 500);
 };
 
