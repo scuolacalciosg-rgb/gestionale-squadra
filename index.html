@@ -211,6 +211,7 @@
       <button class="nav-item" onclick="window.showSection('rosa',this)"><i class="ti ti-users"></i><span>Rosa</span></button>
       <button class="nav-item" onclick="window.showSection('partite',this)"><i class="ti ti-trophy"></i><span>Partite</span></button>
       <button class="nav-item" onclick="window.showSection('calendario',this)"><i class="ti ti-calendar-month"></i><span>Calendario</span></button>
+      <button class="nav-item" onclick="window.showSection('tornei',this)"><i class="ti ti-tournament"></i><span>Tornei</span></button>
       <button class="nav-item" onclick="window.showSection('allenamenti',this)"><i class="ti ti-run"></i><span>Allenamenti</span></button>
       <button class="nav-item" onclick="window.showSection('presenze',this)"><i class="ti ti-clipboard-check"></i><span>Presenze</span></button>
       <button class="nav-item" onclick="window.showSection('esercizi',this)"><i class="ti ti-barbell"></i><span>Esercizi</span></button>
@@ -289,6 +290,19 @@
       <div style="flex:1;overflow-y:auto;padding:24px">
         <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px"></div>
         <div id="cal-events" style="margin-top:8px"></div>
+      </div>
+    </div>
+
+    <!-- TORNEI -->
+    <div id="sec-tornei" class="section">
+      <div class="topbar">
+        <div><div class="page-title">Tornei</div><div class="page-subtitle">Gestione tornei e risultati</div></div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="window.openModal('modal-torneo')"><i class="ti ti-plus"></i> Nuovo torneo</button>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:24px">
+        <div id="tornei-list"></div>
       </div>
     </div>
 
@@ -704,6 +718,95 @@
   </div>
 </div>
 
+<!-- TORNEO MODAL -->
+<div class="modal-overlay" id="modal-torneo">
+  <div class="modal" style="width:500px;max-width:96vw">
+    <div class="modal-title" id="torneo-modal-title">Nuovo torneo</div>
+    <input type="hidden" id="torneo-edit-key" value="">
+    <div class="form-group"><label class="form-label">Nome torneo *</label><input type="text" id="torneo-nome" placeholder="Es. Torneo Primaverile 2025"></div>
+    <div class="form-grid2">
+      <div class="form-group"><label class="form-label">Data inizio</label><input type="date" id="torneo-data-inizio"></div>
+      <div class="form-group"><label class="form-label">Data fine</label><input type="date" id="torneo-data-fine"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Luogo</label><input type="text" id="torneo-luogo" placeholder="Es. Campo Sportivo Comunale"></div>
+    <div class="form-group">
+      <label class="form-label">Squadre partecipanti</label>
+      <div id="torneo-squadre-list" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="torneo-squadra-input" placeholder="Nome squadra..." onkeydown="if(event.key==='Enter'){event.preventDefault();window.addSquadraToTorneo()}">
+        <button class="btn" onclick="window.addSquadraToTorneo()" style="flex-shrink:0"><i class="ti ti-plus"></i> Aggiungi</button>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Note</label><textarea id="torneo-note" placeholder="Descrizione, regole, premi..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="window.closeModal('modal-torneo')">Annulla</button>
+      <button class="btn btn-primary" onclick="window.saveTorneo()"><i class="ti ti-device-floppy"></i> Salva torneo</button>
+    </div>
+  </div>
+</div>
+
+<!-- PARTITA TORNEO MODAL -->
+<div class="modal-overlay" id="modal-partita-torneo">
+  <div class="modal" style="width:480px;max-width:96vw">
+    <div class="modal-title">Aggiungi partita torneo</div>
+    <input type="hidden" id="pt-torneo-key" value="">
+    <input type="hidden" id="pt-edit-key" value="">
+    <div class="form-grid2">
+      <div class="form-group"><label class="form-label">Squadra casa *</label><select id="pt-casa"></select></div>
+      <div class="form-group"><label class="form-label">Squadra ospite *</label><select id="pt-ospite"></select></div>
+    </div>
+    <div class="form-grid2">
+      <div class="form-group"><label class="form-label">Gol casa</label><input type="number" id="pt-gol-casa" min="0" value="0"></div>
+      <div class="form-group"><label class="form-label">Gol ospite</label><input type="number" id="pt-gol-ospite" min="0" value="0"></div>
+    </div>
+    <div class="form-grid2">
+      <div class="form-group"><label class="form-label">Data</label><input type="date" id="pt-data"></div>
+      <div class="form-group"><label class="form-label">Ora</label><input type="time" id="pt-ora" value="10:00"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Fase</label><select id="pt-fase"><option>Girone</option><option>Quarti di finale</option><option>Semifinale</option><option>Finale 3° posto</option><option>Finale</option></select></div>
+    <div class="form-group">
+      <label class="form-label">Note partita (per analisi IA)</label>
+      <textarea id="pt-note" placeholder="Es. Buona prestazione nel primo tempo, difficoltà nel pressing alto, ottimo portiere avversario..." style="min-height:90px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="window.closeModal('modal-partita-torneo')">Annulla</button>
+      <button class="btn btn-primary" onclick="window.savePartitaTorneo()">Salva partita</button>
+    </div>
+  </div>
+</div>
+
+<!-- TORNEO DETAIL MODAL -->
+<div class="modal-overlay" id="modal-torneo-detail">
+  <div class="modal" style="width:620px;max-width:96vw;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div id="td2-nome" style="font-size:20px;font-weight:600"></div>
+        <div id="td2-info" style="font-size:13px;color:var(--text3);margin-top:2px"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" id="td2-add-partita-btn"><i class="ti ti-plus"></i> Aggiungi partita</button>
+        <button class="btn" onclick="window.closeModal('modal-torneo-detail')"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+    <!-- Classifica -->
+    <div style="margin-bottom:20px">
+      <div class="section-title">📊 Classifica</div>
+      <div id="td2-classifica"></div>
+    </div>
+    <!-- Partite -->
+    <div style="margin-bottom:20px">
+      <div class="section-title">⚽ Partite</div>
+      <div id="td2-partite"></div>
+    </div>
+    <!-- Analisi IA -->
+    <div style="margin-bottom:16px">
+      <div class="section-title">🤖 Analisi IA</div>
+      <button class="btn btn-primary" onclick="window.analizzaTorneoIA()" style="width:100%;justify-content:center"><i class="ti ti-robot"></i> Analizza prestazioni con IA</button>
+      <div id="td2-ia-result" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
 <!-- CHIUDI STAGIONE MODAL -->
 <div class="modal-overlay" id="modal-chiudi-stagione">
   <div class="modal" style="width:440px">
@@ -903,6 +1006,7 @@ listen('news','news');
 listen('gallery','gallery');
 listen('presenze','presenze');
 listen('obiettivi','obiettivi');
+listen('tornei','tornei');
 onValue(ref(db, 'settings'), snap => {
   if(snap.val()) { state.settings = snap.val(); renderSettings(); }
   document.getElementById('loading-screen').style.display = 'none';
@@ -1165,6 +1269,7 @@ function renderAll() {
   renderCalendar();
   renderStatistiche();
   renderObiettivi();
+  renderTornei();
 }
 
 // CRUD
@@ -1651,6 +1756,7 @@ window.showSection = (id,btn) => {
   if(id==='statistiche') renderStatistiche();
   if(id==='impostazioni') renderStagioniArchivio();
   if(id==='obiettivi') renderObiettivi();
+  if(id==='tornei') renderTornei();
   if(id==='ia') { renderIAMessages(); window.initIaKeyBar(); }
 };
 window.openModal = id=>document.getElementById(id).classList.add('open');
@@ -2231,6 +2337,261 @@ function renderIAMessages() {
   ).join('');
   el.scrollTop = el.scrollHeight;
 }
+
+// ============================================================
+// TORNEI
+// ============================================================
+let _torneoSquadre = [];
+let _currentTorneoKey = null;
+
+function renderTornei() {
+  const el = document.getElementById('tornei-list');
+  if(!el) return;
+  const tornei = Object.entries(state.tornei||{}).map(([k,v])=>({...v,_key:k}))
+    .sort((a,b)=>(b.dataInizio||'').localeCompare(a.dataInizio||''));
+  if(!tornei.length) {
+    el.innerHTML = '<div class="empty"><i class="ti ti-tournament"></i>Nessun torneo. Creane uno!</div>';
+    return;
+  }
+  el.innerHTML = tornei.map(t => {
+    const partite = Object.values(t.partite||{});
+    const squadre = t.squadre||[];
+    return `<div style="background:rgba(20,8,8,0.82);backdrop-filter:blur(6px);border:1px solid rgba(204,31,31,0.2);border-radius:var(--radius-lg);padding:18px;margin-bottom:14px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:17px;font-weight:600;cursor:pointer;color:var(--green)" onclick="window.openTorneoDetail('${t._key}')">${t.nome}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px">
+            ${t.dataInizio?fmtDate(t.dataInizio):''}${t.dataFine?' → '+fmtDate(t.dataFine):''} ${t.luogo?'· '+t.luogo:''}
+          </div>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+            ${squadre.map(s=>`<span class="badge badge-gray">${s}</span>`).join('')}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <span class="badge badge-blue">${partite.length} partite</span>
+          <button class="delete-btn" onclick="window._del('tornei','${t._key}')"><i class="ti ti-trash" style="font-size:15px"></i></button>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="window.openTorneoDetail('${t._key}')" style="font-size:12px;padding:6px 12px">
+        <i class="ti ti-eye"></i> Apri torneo
+      </button>
+    </div>`;
+  }).join('');
+}
+
+window._torneoSquadreList = [];
+
+window.addSquadraToTorneo = () => {
+  const input = document.getElementById('torneo-squadra-input');
+  const nome = input.value.trim();
+  if(!nome) return;
+  if(window._torneoSquadreList.includes(nome)) { toast('Squadra già aggiunta'); return; }
+  window._torneoSquadreList.push(nome);
+  input.value = '';
+  renderSquadreTorneoList();
+};
+
+function renderSquadreTorneoList() {
+  const el = document.getElementById('torneo-squadre-list');
+  if(!el) return;
+  if(!window._torneoSquadreList.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text3)">Nessuna squadra aggiunta</div>'; return; }
+  el.innerHTML = window._torneoSquadreList.map((s,i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2);border-radius:var(--radius);margin-bottom:6px">
+      <span style="flex:1;font-size:13px">${s}</span>
+      <button class="delete-btn" onclick="window._torneoSquadreList.splice(${i},1);renderSquadreTorneoList()"><i class="ti ti-x" style="font-size:13px"></i></button>
+    </div>`).join('');
+}
+
+window.saveTorneo = () => {
+  const nome = document.getElementById('torneo-nome').value.trim();
+  if(!nome) { alert('Inserisci il nome del torneo'); return; }
+  if(window._torneoSquadreList.length < 2) { alert('Aggiungi almeno 2 squadre'); return; }
+  const key = document.getElementById('torneo-edit-key').value;
+  const data_obj = {
+    nome,
+    dataInizio: document.getElementById('torneo-data-inizio').value,
+    dataFine: document.getElementById('torneo-data-fine').value,
+    luogo: document.getElementById('torneo-luogo').value,
+    note: document.getElementById('torneo-note').value,
+    squadre: window._torneoSquadreList,
+    partite: key ? ((state.tornei||{})[key]?.partite||{}) : {}
+  };
+  if(key) { update(ref(db,'tornei/'+key), data_obj); toast('Torneo aggiornato!'); }
+  else { push(ref(db,'tornei'), data_obj); toast('Torneo creato!'); }
+  window.closeModal('modal-torneo');
+  window._torneoSquadreList = [];
+  ['torneo-nome','torneo-luogo','torneo-note','torneo-data-inizio','torneo-data-fine'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('torneo-edit-key').value = '';
+};
+
+window.openTorneoDetail = key => {
+  _currentTorneoKey = key;
+  const t = (state.tornei||{})[key]; if(!t) return;
+  document.getElementById('td2-nome').textContent = t.nome;
+  document.getElementById('td2-info').textContent =
+    (t.dataInizio?fmtDate(t.dataInizio):'') + (t.dataFine?' → '+fmtDate(t.dataFine):'') + (t.luogo?' · '+t.luogo:'');
+  document.getElementById('td2-add-partita-btn').onclick = () => window.openPartitaTorneoModal(key);
+  renderClassifica(key);
+  renderPartiteTorneo(key);
+  document.getElementById('td2-ia-result').innerHTML = '';
+  window.openModal('modal-torneo-detail');
+};
+
+function renderClassifica(torneoKey) {
+  const t = (state.tornei||{})[torneoKey]; if(!t) return;
+  const el = document.getElementById('td2-classifica');
+  const squadre = t.squadre||[];
+  const partite = Object.values(t.partite||{});
+  // Build standings
+  const standing = {};
+  squadre.forEach(s => { standing[s] = {g:0,v:0,p:0,s:0,gf:0,gs:0,pt:0}; });
+  partite.forEach(p => {
+    if(!p.casa||!p.ospite||p.golCasa===undefined||p.golOspite===undefined) return;
+    const gc = parseInt(p.golCasa)||0, go = parseInt(p.golOspite)||0;
+    if(!standing[p.casa]) standing[p.casa]={g:0,v:0,p:0,s:0,gf:0,gs:0,pt:0};
+    if(!standing[p.ospite]) standing[p.ospite]={g:0,v:0,p:0,s:0,gf:0,gs:0,pt:0};
+    standing[p.casa].g++; standing[p.ospite].g++;
+    standing[p.casa].gf+=gc; standing[p.casa].gs+=go;
+    standing[p.ospite].gf+=go; standing[p.ospite].gs+=gc;
+    if(gc>go){ standing[p.casa].v++; standing[p.casa].pt+=3; standing[p.ospite].s++; }
+    else if(gc===go){ standing[p.casa].p++; standing[p.casa].pt+=1; standing[p.ospite].p++; standing[p.ospite].pt+=1; }
+    else{ standing[p.ospite].v++; standing[p.ospite].pt+=3; standing[p.casa].s++; }
+  });
+  const sorted = Object.entries(standing).sort((a,b)=>b[1].pt-a[1].pt||(b[1].gf-b[1].gs)-(a[1].gf-a[1].gs));
+  el.innerHTML = `<div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="border-bottom:1px solid var(--border)">
+        <th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--text3);text-transform:uppercase">#</th>
+        <th style="padding:8px 12px;text-align:left;font-size:11px;color:var(--text3);text-transform:uppercase">Squadra</th>
+        <th style="padding:8px 12px;text-align:center;font-size:11px;color:var(--text3)">G</th>
+        <th style="padding:8px 12px;text-align:center;font-size:11px;color:var(--text3)">V</th>
+        <th style="padding:8px 12px;text-align:center;font-size:11px;color:var(--text3)">P</th>
+        <th style="padding:8px 12px;text-align:center;font-size:11px;color:var(--text3)">S</th>
+        <th style="padding:8px 12px;text-align:center;font-size:11px;color:var(--text3)">GF</th>
+        <th style="padding:8px 12px;text-align:center;font-size:11px;color:var(--text3)">GS</th>
+        <th style="padding:8px 12px;text-align:center;font-size:11px;color:var(--text3);font-weight:700">PT</th>
+      </tr></thead>
+      <tbody>${sorted.map(([nome,s],i)=>`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px 12px;font-weight:600;color:var(--text3)">${i+1}</td>
+        <td style="padding:8px 12px;font-weight:500">${nome}</td>
+        <td style="padding:8px 12px;text-align:center">${s.g}</td>
+        <td style="padding:8px 12px;text-align:center;color:var(--green)">${s.v}</td>
+        <td style="padding:8px 12px;text-align:center;color:var(--amber)">${s.p}</td>
+        <td style="padding:8px 12px;text-align:center;color:var(--red)">${s.s}</td>
+        <td style="padding:8px 12px;text-align:center">${s.gf}</td>
+        <td style="padding:8px 12px;text-align:center">${s.gs}</td>
+        <td style="padding:8px 12px;text-align:center;font-weight:700;color:var(--green)">${s.pt}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderPartiteTorneo(torneoKey) {
+  const t = (state.tornei||{})[torneoKey]; if(!t) return;
+  const el = document.getElementById('td2-partite');
+  const partite = Object.entries(t.partite||{}).map(([k,v])=>({...v,_key:k}))
+    .sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  if(!partite.length) { el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:12px">Nessuna partita. Aggiungine una!</div>'; return; }
+  el.innerHTML = partite.map(p => `
+    <div style="padding:12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:13px;font-weight:600">${p.casa} vs ${p.ospite}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-size:18px;font-weight:700;font-family:'DM Mono',monospace;padding:4px 12px;background:var(--surface2);border-radius:var(--radius)">${p.golCasa??'—'} - ${p.golOspite??'—'}</div>
+          <button class="delete-btn" onclick="window.editPartitaTorneo('${torneoKey}','${p._key}')"><i class="ti ti-pencil" style="font-size:14px"></i></button>
+          <button class="delete-btn" onclick="window._del('tornei/${torneoKey}/partite','${p._key}')"><i class="ti ti-trash" style="font-size:14px"></i></button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">${p.data?fmtDate(p.data):''} ${p.ora?'· '+p.ora:''} ${p.fase?'· '+p.fase:''}</div>
+      ${p.note?`<div style="font-size:12px;color:var(--text2);margin-top:6px;padding:8px;background:var(--surface2);border-radius:6px;line-height:1.5"><i class="ti ti-notes" style="font-size:11px;vertical-align:-1px"></i> ${p.note}</div>`:''}
+    </div>`).join('');
+}
+
+window.openPartitaTorneoModal = torneoKey => {
+  const t = (state.tornei||{})[torneoKey]; if(!t) return;
+  document.getElementById('pt-torneo-key').value = torneoKey;
+  document.getElementById('pt-edit-key').value = '';
+  const squadre = t.squadre||[];
+  const opts = squadre.map(s=>`<option value="${s}">${s}</option>`).join('');
+  document.getElementById('pt-casa').innerHTML = opts;
+  document.getElementById('pt-ospite').innerHTML = opts;
+  if(squadre.length>1) document.getElementById('pt-ospite').selectedIndex=1;
+  document.getElementById('pt-gol-casa').value='0';
+  document.getElementById('pt-gol-ospite').value='0';
+  document.getElementById('pt-data').value='';
+  document.getElementById('pt-note').value='';
+  window.openModal('modal-partita-torneo');
+};
+
+window.editPartitaTorneo = (torneoKey, partitaKey) => {
+  const t = (state.tornei||{})[torneoKey]; if(!t) return;
+  const p = (t.partite||{})[partitaKey]; if(!p) return;
+  document.getElementById('pt-torneo-key').value = torneoKey;
+  document.getElementById('pt-edit-key').value = partitaKey;
+  const squadre = t.squadre||[];
+  const opts = squadre.map(s=>`<option value="${s}">${s}</option>`).join('');
+  document.getElementById('pt-casa').innerHTML = opts;
+  document.getElementById('pt-ospite').innerHTML = opts;
+  document.getElementById('pt-casa').value = p.casa||'';
+  document.getElementById('pt-ospite').value = p.ospite||'';
+  document.getElementById('pt-gol-casa').value = p.golCasa??0;
+  document.getElementById('pt-gol-ospite').value = p.golOspite??0;
+  document.getElementById('pt-data').value = p.data||'';
+  document.getElementById('pt-ora').value = p.ora||'10:00';
+  document.getElementById('pt-fase').value = p.fase||'Girone';
+  document.getElementById('pt-note').value = p.note||'';
+  window.openModal('modal-partita-torneo');
+};
+
+window.savePartitaTorneo = () => {
+  const torneoKey = document.getElementById('pt-torneo-key').value;
+  const editKey = document.getElementById('pt-edit-key').value;
+  const casa = document.getElementById('pt-casa').value;
+  const ospite = document.getElementById('pt-ospite').value;
+  if(casa===ospite) { alert('Le due squadre devono essere diverse!'); return; }
+  const data_obj = {
+    casa, ospite,
+    golCasa: parseInt(document.getElementById('pt-gol-casa').value)||0,
+    golOspite: parseInt(document.getElementById('pt-gol-ospite').value)||0,
+    data: document.getElementById('pt-data').value,
+    ora: document.getElementById('pt-ora').value,
+    fase: document.getElementById('pt-fase').value,
+    note: document.getElementById('pt-note').value,
+    ts: Date.now()
+  };
+  const path = `tornei/${torneoKey}/partite`;
+  if(editKey) { update(ref(db,path+'/'+editKey), data_obj); toast('Partita aggiornata!'); }
+  else { push(ref(db,path), data_obj); toast('Partita salvata!'); }
+  window.closeModal('modal-partita-torneo');
+  // Refresh torneo detail
+  setTimeout(()=>{ renderClassifica(torneoKey); renderPartiteTorneo(torneoKey); }, 500);
+};
+
+window.analizzaTorneoIA = async () => {
+  const torneoKey = _currentTorneoKey;
+  const t = (state.tornei||{})[torneoKey]; if(!t) return;
+  const el = document.getElementById('td2-ia-result');
+  if(!window._iaApiKey || window._iaApiKey.length < 10) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--red)">Configura prima la chiave API nella sezione Assistente IA!</div>';
+    return;
+  }
+  el.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:12px;text-align:center"><div class="spinner" style="margin:0 auto 8px"></div>Analisi in corso...</div>';
+  const partite = Object.values(t.partite||{});
+  const noteTutte = partite.filter(p=>p.note).map(p=>`${p.casa} ${p.golCasa}-${p.golOspite} ${p.ospite}: ${p.note}`).join('\n');
+  const prompt = `Analizza queste note delle partite del torneo "${t.nome}" e dammi: 1) Punti di forza della squadra, 2) Aree da migliorare, 3) Consigli pratici per i prossimi allenamenti.\n\nNote partite:\n${noteTutte||'Nessuna nota inserita'}`;
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+window._iaApiKey,'HTTP-Referer':'https://scuolacalciosg-rgb.github.io','X-Title':'ASD San Giovanni'},
+      body: JSON.stringify({model:'openrouter/auto',messages:[{role:'system',content:'Sei un esperto allenatore di calcio giovanile. Rispondi in italiano in modo pratico e conciso.'},{role:'user',content:prompt}],max_tokens:800})
+    });
+    const data = await response.json();
+    const reply = data.choices?.[0]?.message?.content || 'Nessuna risposta.';
+    el.innerHTML = `<div style="background:var(--surface2);border-radius:var(--radius);padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--text2)">${reply}</div>`;
+  } catch(err) {
+    el.innerHTML = `<div style="font-size:13px;color:var(--red)">Errore: ${err.message}</div>`;
+  }
+};
 
 // ============================================================
 // GESTIONE STAGIONI
