@@ -2363,22 +2363,35 @@ function renderIAMessages() {
 window._marcatoriM = []; // for normal matches
 window._marcatoriPT = []; // for torneo matches
 
-function renderMarcatoriList(listId, arr, addFn) {
+function renderMarcatoriList(listId, arr) {
   const el = document.getElementById(listId);
   if(!el) return;
   if(!arr.length) { el.innerHTML='<div style="font-size:12px;color:var(--text3)">Nessun marcatore aggiunto</div>'; return; }
   el.innerHTML = arr.map((m,i)=>`
     <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2);border-radius:var(--radius);margin-bottom:6px">
       <span style="flex:1;font-size:13px">⚽ ${m.nome} × ${m.gol}</span>
-      <button class="delete-btn" onclick="${addFn}.splice(${i},1);renderMarcatoriList('${listId}',${addFn},'${addFn}')"><i class="ti ti-x" style="font-size:13px"></i></button>
+      <button class="delete-btn" data-list="${listId}" data-idx="${i}" onclick="window.removeMarcatore(this)"><i class="ti ti-x" style="font-size:13px"></i></button>
     </div>`).join('');
 }
+
+window.removeMarcatore = btn => {
+  const listId = btn.dataset.list;
+  const idx = parseInt(btn.dataset.idx);
+  if(listId === 'm-marcatori-list') { window._marcatoriM.splice(idx,1); renderMarcatoriList('m-marcatori-list', window._marcatoriM); }
+  else { window._marcatoriPT.splice(idx,1); renderMarcatoriList('pt-marcatori-list', window._marcatoriPT); }
+};
 
 function populateMarcatoreSelect(selectId) {
   const sel = document.getElementById(selectId);
   if(!sel) return;
-  const players = Object.values(state.players||{}).sort((a,b)=>a.nome.localeCompare(b.nome));
-  sel.innerHTML = players.map(p=>`<option value="${p._key||''}" data-nome="${p.nome}">${p.nome}</option>`).join('');
+  const players = Object.entries(state.players||{})
+    .map(([k,v])=>({...v,_key:k}))
+    .sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  if(!players.length) {
+    sel.innerHTML = '<option value="">Nessun giocatore</option>';
+    return;
+  }
+  sel.innerHTML = players.map(p=>`<option value="${p._key}" data-nome="${p.nome}">${p.nome}</option>`).join('');
 }
 
 window.addMarcatoreM = () => {
@@ -2390,7 +2403,7 @@ window.addMarcatoreM = () => {
   const existing = window._marcatoriM.find(m=>m.key===sel.value);
   if(existing) { existing.gol+=gol; }
   else { window._marcatoriM.push({key:sel.value, nome, gol}); }
-  renderMarcatoriList('m-marcatori-list', window._marcatoriM, 'window._marcatoriM');
+  renderMarcatoriList('m-marcatori-list', window._marcatoriM);
 };
 
 window.addMarcatorePT = () => {
@@ -2401,7 +2414,7 @@ window.addMarcatorePT = () => {
   const existing = window._marcatoriPT.find(m=>m.key===sel.value);
   if(existing) { existing.gol+=gol; }
   else { window._marcatoriPT.push({key:sel.value, nome, gol}); }
-  renderMarcatoriList('pt-marcatori-list', window._marcatoriPT, 'window._marcatoriPT');
+  renderMarcatoriList('pt-marcatori-list', window._marcatoriPT);
 };
 
 function updatePlayerGoals(marcatori) {
@@ -2598,7 +2611,7 @@ window.openPartitaTorneoModal = torneoKey => {
   document.getElementById('pt-data').value='';
   document.getElementById('pt-note').value='';
   window._marcatoriPT = [];
-  renderMarcatoriList('pt-marcatori-list', window._marcatoriPT, 'window._marcatoriPT');
+  renderMarcatoriList('pt-marcatori-list', window._marcatoriPT);
   populateMarcatoreSelect('pt-marcatore-giocatore');
   window.openModal('modal-partita-torneo');
 };
