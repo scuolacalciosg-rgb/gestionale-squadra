@@ -2383,15 +2383,18 @@ window.removeMarcatore = btn => {
 
 function populateMarcatoreSelect(selectId) {
   const sel = document.getElementById(selectId);
-  if(!sel) return;
+  if(!sel) { console.log('Select not found:', selectId); return; }
   const players = Object.entries(state.players||{})
     .map(([k,v])=>({...v,_key:k}))
+    .filter(p=>p.nome)
     .sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  console.log('Populating', selectId, 'with', players.length, 'players');
   if(!players.length) {
-    sel.innerHTML = '<option value="">Nessun giocatore</option>';
+    sel.innerHTML = '<option value="">Nessun giocatore in rosa</option>';
     return;
   }
-  sel.innerHTML = players.map(p=>`<option value="${p._key}" data-nome="${p.nome}">${p.nome}</option>`).join('');
+  sel.innerHTML = '<option value="">-- Seleziona giocatore --</option>' +
+    players.map(p=>`<option value="${p._key}" data-nome="${p.nome}">${p.nome} (#${p.numero||'?'})</option>`).join('');
 }
 
 window.addMarcatoreM = () => {
