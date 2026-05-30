@@ -474,13 +474,14 @@
     </div>
     <div class="form-grid2">
       <div class="form-group"><label class="form-label">Categoria</label><select id="p-categoria"><option>Prima Squadra</option><option>Juniores</option><option>Allievi</option><option>Giovanissimi</option><option>Esordienti</option><option>Pulcini</option><option>Piccoli Amici</option></select></div>
-      <div class="form-group"><label class="form-label">Anno nascita</label><input type="number" id="p-anno" placeholder="2000"></div>
+      <div class="form-group"><label class="form-label">Data di nascita</label><input type="date" id="p-anno"></div>
     </div>
     <div class="form-grid2">
       <div class="form-group"><label class="form-label">Stato</label><select id="p-stato"><option>Disponibile</option><option>Infortunato</option><option>Squalificato</option><option>In dubbio</option></select></div>
       <div class="form-group"><label class="form-label">Visita medica</label><input type="date" id="p-visita" title="Scadenza visita medica"></div>
     </div>
     <div class="form-group"><label class="form-label">Nome genitore / tutore</label><input type="text" id="p-genitore" placeholder="Es. Giuseppe Rossi"></div>
+    <div class="form-group"><label class="form-label">Indirizzo di residenza</label><input type="text" id="p-indirizzo" placeholder="Es. Via Roma 12, Trieste"></div>
     <div class="form-group"><label class="form-label">Contatto giocatore / genitore</label><input type="text" id="p-contatto" placeholder="Es. 333 1234567"></div>
     <div class="modal-actions"><button class="btn" onclick="window.closeModal('modal-player')">Annulla</button><button class="btn btn-primary" onclick="window.addPlayer()">Aggiungi</button></div>
   </div>
@@ -506,7 +507,7 @@
         <div id="detail-numero" style="font-size:22px;font-weight:600;font-family:'DM Mono',monospace"></div>
       </div>
       <div style="background:var(--surface2);border-radius:var(--radius);padding:12px">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Anno di nascita</div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Data di nascita</div>
         <div id="detail-anno" style="font-size:14px;font-weight:500"></div>
       </div>
       <div style="background:var(--surface2);border-radius:var(--radius);padding:12px">
@@ -525,6 +526,10 @@
     <div style="margin-top:12px;background:var(--surface2);border-radius:var(--radius);padding:12px">
       <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Contatto</div>
       <div id="detail-contatto" style="font-size:14px;font-weight:500"></div>
+    </div>
+    <div style="margin-top:12px;background:var(--surface2);border-radius:var(--radius);padding:12px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Indirizzo di residenza</div>
+      <div id="detail-indirizzo" style="font-size:14px;font-weight:500"></div>
     </div>
     <div class="modal-actions" style="margin-top:16px">
       <button class="btn" onclick="window.closeModal('modal-player-detail')">Chiudi</button>
@@ -1050,7 +1055,7 @@ function renderRosa() {
         : `<div class="avatar">${initials(p.nome)}</div>`}
       <div>
         <div style="font-weight:500;cursor:pointer;color:var(--green)" onclick='window.openPlayerDetail(${JSON.stringify(p).replace(/'/g,"\'")})'>${p.nome}</div>
-        <div style="font-size:11px;color:var(--text3)">${p.categoria||''}${p.anno?' · '+p.anno:''}</div>
+        <div style="font-size:11px;color:var(--text3)">${p.categoria||''}${p.dataNascita?' · '+fmtDate(p.dataNascita):(p.anno?' · '+p.anno:'')}</div>
       </div>
     </div></td>
     <td><span class="badge ${ruoloBadge(p.ruolo)}">${p.ruolo}</span></td>
@@ -1315,7 +1320,8 @@ window.openPlayerDetail = (p) => {
   document.getElementById('detail-stato').innerHTML = `<span class="badge ${statoColor}">${p.stato||'Disponibile'}</span>`;
   document.getElementById('detail-ruolo').textContent = p.ruolo||'—';
   document.getElementById('detail-numero').textContent = p.numero||'—';
-  document.getElementById('detail-anno').textContent = p.anno||'—';
+  document.getElementById('detail-anno').textContent = p.dataNascita ? fmtDate(p.dataNascita) : (p.anno||'—');
+  const detIndEl = document.getElementById('detail-indirizzo'); if(detIndEl) detIndEl.textContent = p.indirizzo||'—';
   document.getElementById('detail-stats').innerHTML = `⚽ ${p.gol||0} gol &nbsp;·&nbsp; 🎯 ${p.assist||0} assist`;
   // visita medica
   let visitaText = p.visita||'Non inserita';
@@ -1341,7 +1347,8 @@ window.editPlayer = key => {
   document.getElementById('p-ruolo').value = p.ruolo||'Portiere';
   document.getElementById('p-categoria').value = p.categoria||'Prima Squadra';
   document.getElementById('p-numero').value = p.numero||'';
-  document.getElementById('p-anno').value = p.anno||'';
+  document.getElementById('p-anno').value = p.dataNascita||p.anno||'';
+  const indirizzoEl = document.getElementById('p-indirizzo'); if(indirizzoEl) indirizzoEl.value = p.indirizzo||'';
   document.getElementById('p-stato').value = p.stato||'Disponibile';
   document.getElementById('p-visita').value = p.visita||'';
   document.getElementById('p-genitore').value = p.genitore||'';
@@ -1376,11 +1383,12 @@ window.updatePlayer = key => {
     ruolo: document.getElementById('p-ruolo').value,
     categoria: document.getElementById('p-categoria').value,
     numero: document.getElementById('p-numero').value,
-    anno: document.getElementById('p-anno').value,
+    dataNascita: document.getElementById('p-anno').value,
     stato: document.getElementById('p-stato').value,
     visita: document.getElementById('p-visita').value,
     genitore: document.getElementById('p-genitore').value,
     contatto: document.getElementById('p-contatto').value,
+    indirizzo: document.getElementById('p-indirizzo').value,
     foto: window._playerPhotoData||''
   });
   closeModal('modal-player');
@@ -1390,7 +1398,7 @@ window.updatePlayer = key => {
   const addBtn = document.querySelector('#modal-player .btn-primary');
   addBtn.textContent = 'Aggiungi';
   addBtn.onclick = window.addPlayer;
-  ['p-nome','p-numero','p-anno','p-contatto','p-genitore','p-visita'].forEach(id=>document.getElementById(id).value='');
+  ['p-nome','p-numero','p-anno','p-contatto','p-genitore','p-visita','p-indirizzo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   window._playerPhotoData = null;
   document.getElementById('p-foto-preview').innerHTML = '📷';
 };
@@ -1419,16 +1427,17 @@ window.addPlayer = () => {
     ruolo:document.getElementById('p-ruolo').value,
     categoria:document.getElementById('p-categoria').value,
     numero:document.getElementById('p-numero').value,
-    anno:document.getElementById('p-anno').value,
+    dataNascita:document.getElementById('p-anno').value,
     stato:document.getElementById('p-stato').value,
     visita: visita||'',
     genitore:document.getElementById('p-genitore').value,
     contatto:document.getElementById('p-contatto').value,
+    indirizzo:document.getElementById('p-indirizzo')?document.getElementById('p-indirizzo').value:'',
     foto: window._playerPhotoData||'',
     gol:0,assist:0
   });
   closeModal('modal-player'); toast('Giocatore aggiunto!');
-  ['p-nome','p-numero','p-anno','p-contatto','p-genitore','p-visita'].forEach(id=>document.getElementById(id).value='');
+  ['p-nome','p-numero','p-anno','p-contatto','p-genitore','p-visita','p-indirizzo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   window.openPlayerDetail = (p) => {
   const prev = document.getElementById('detail-foto');
   if(p.foto) {
@@ -1442,7 +1451,8 @@ window.addPlayer = () => {
   document.getElementById('detail-stato').innerHTML = `<span class="badge ${statoColor}">${p.stato||'Disponibile'}</span>`;
   document.getElementById('detail-ruolo').textContent = p.ruolo||'—';
   document.getElementById('detail-numero').textContent = p.numero||'—';
-  document.getElementById('detail-anno').textContent = p.anno||'—';
+  document.getElementById('detail-anno').textContent = p.dataNascita ? fmtDate(p.dataNascita) : (p.anno||'—');
+  const detIndEl = document.getElementById('detail-indirizzo'); if(detIndEl) detIndEl.textContent = p.indirizzo||'—';
   document.getElementById('detail-stats').innerHTML = `⚽ ${p.gol||0} gol &nbsp;·&nbsp; 🎯 ${p.assist||0} assist`;
   // visita medica
   let visitaText = p.visita||'Non inserita';
@@ -1468,7 +1478,8 @@ window.editPlayer = key => {
   document.getElementById('p-ruolo').value = p.ruolo||'Portiere';
   document.getElementById('p-categoria').value = p.categoria||'Prima Squadra';
   document.getElementById('p-numero').value = p.numero||'';
-  document.getElementById('p-anno').value = p.anno||'';
+  document.getElementById('p-anno').value = p.dataNascita||p.anno||'';
+  const indirizzoEl = document.getElementById('p-indirizzo'); if(indirizzoEl) indirizzoEl.value = p.indirizzo||'';
   document.getElementById('p-stato').value = p.stato||'Disponibile';
   document.getElementById('p-visita').value = p.visita||'';
   document.getElementById('p-genitore').value = p.genitore||'';
@@ -1503,11 +1514,12 @@ window.updatePlayer = key => {
     ruolo: document.getElementById('p-ruolo').value,
     categoria: document.getElementById('p-categoria').value,
     numero: document.getElementById('p-numero').value,
-    anno: document.getElementById('p-anno').value,
+    dataNascita: document.getElementById('p-anno').value,
     stato: document.getElementById('p-stato').value,
     visita: document.getElementById('p-visita').value,
     genitore: document.getElementById('p-genitore').value,
     contatto: document.getElementById('p-contatto').value,
+    indirizzo: document.getElementById('p-indirizzo').value,
     foto: window._playerPhotoData||''
   });
   closeModal('modal-player');
@@ -1517,7 +1529,7 @@ window.updatePlayer = key => {
   const addBtn = document.querySelector('#modal-player .btn-primary');
   addBtn.textContent = 'Aggiungi';
   addBtn.onclick = window.addPlayer;
-  ['p-nome','p-numero','p-anno','p-contatto','p-genitore','p-visita'].forEach(id=>document.getElementById(id).value='');
+  ['p-nome','p-numero','p-anno','p-contatto','p-genitore','p-visita','p-indirizzo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   window._playerPhotoData = null;
   document.getElementById('p-foto-preview').innerHTML = '📷';
 };
