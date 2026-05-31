@@ -1842,7 +1842,7 @@ window.openExerciseDetail = e => {
 window.addNews = () => {
   const titolo=document.getElementById('n-titolo').value.trim();
   if(!titolo){alert('Inserisci il titolo');return;}
-  push(ref(db,'news'),{titolo,body:document.getElementById('n-body').value,autore:document.getElementById('n-autore').value,data:new Date().toLocaleDateString('it-IT'),ts:Date.now()});
+  push(ref(db,'news'),{titolo,body:document.getElementById('n-body').value,autore:document.getElementById('n-autore').value,data:new Date().toLocaleDateString('it-IT'),dataISO:new Date().toISOString().slice(0,10),ts:Date.now()});
   closeModal('modal-news'); toast('Comunicazione pubblicata!');
   ['n-titolo','n-body','n-autore'].forEach(id=>document.getElementById(id).value='');
 };
@@ -3196,18 +3196,42 @@ function renderCalendar() {
   // collect events for this month
   const events = {};
   const t0str = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
-  Object.values(state.matches||{}).forEach(m => {
+  Object.entries(state.matches||{}).forEach(([k,m]) => {
     if(m.data && m.data.startsWith(t0str)) {
       const day = parseInt(m.data.split('-')[2]);
       if(!events[day]) events[day]=[];
-      events[day].push({type:'match', label:`⚽ vs ${m.avv}`, color:'#CC1F1F'});
+      events[day].push({type:'match', key:k, label:'⚽ vs '+m.avv, color:'#E8001A'});
     }
   });
-  Object.values(state.trainings||{}).forEach(t => {
-    if(t.data && t.data.startsWith(t0str)) {
+  Object.entries(state.trainings||{}).forEach(([k,t]) => {
+    if(t.data && t.data.startsWith(t0str) && t.tipo !== 'template') {
       const day = parseInt(t.data.split('-')[2]);
       if(!events[day]) events[day]=[];
-      events[day].push({type:'training', label:`🏃 ${t.titolo}`, color:'#185FA5'});
+      events[day].push({type:'training', key:k, label:'🏃 '+t.titolo, color:'#3B82F6'});
+    }
+  });
+  // Tornei - add partite with dates
+  Object.entries(state.tornei||{}).forEach(([tk,t]) => {
+    Object.entries(t.partite||{}).forEach(([pk,p]) => {
+      if(p.data && p.data.startsWith(t0str)) {
+        const day = parseInt(p.data.split('-')[2]);
+        if(!events[day]) events[day]=[];
+        events[day].push({type:'torneo', key:tk, label:'🏆 '+t.nome+': '+p.casa+' vs '+p.ospite, color:'#F59E0B'});
+      }
+    });
+    // Also add torneo start date if in this month
+    if(t.dataInizio && t.dataInizio.startsWith(t0str)) {
+      const day = parseInt(t.dataInizio.split('-')[2]);
+      if(!events[day]) events[day]=[];
+      events[day].push({type:'torneo', key:tk, label:'🏆 Inizio: '+t.nome, color:'#F59E0B'});
+    }
+  });
+  // Comunicazioni
+  Object.entries(state.news||{}).forEach(([k,n]) => {
+    if(n.dataISO && n.dataISO.startsWith(t0str)) {
+      const day = parseInt(n.dataISO.split('-')[2]);
+      if(!events[day]) events[day]=[];
+      events[day].push({type:'news', key:k, label:'📢 '+n.titolo, color:'#8B5CF6'});
     }
   });
 
@@ -3228,11 +3252,20 @@ function renderCalendar() {
 
   // Events list below calendar
   const allEvents = [];
-  Object.values(state.matches||{}).forEach(m => {
-    if(m.data && m.data.startsWith(t0str)) allEvents.push({data:m.data,ora:m.ora||'',label:`⚽ Partita vs ${m.avv}`,sub:`${m.luogo}${m.comp?' · '+m.comp:''}`,color:'#CC1F1F'});
+  Object.entries(state.matches||{}).forEach(([k,m]) => {
+    if(m.data && m.data.startsWith(t0str)) allEvents.push({data:m.data,ora:m.ora||'',label:'⚽ Partita vs '+m.avv,sub:(m.luogo||'')+(m.comp?' · '+m.comp:''),color:'#E8001A',key:k,type:'match'});
   });
-  Object.values(state.trainings||{}).forEach(t => {
-    if(t.data && t.data.startsWith(t0str)) allEvents.push({data:t.data,ora:t.ora||'',label:`🏃 ${t.titolo}`,sub:`${t.tipo||'Allenamento'}${t.luogo?' · '+t.luogo:''}`,color:'#185FA5'});
+  Object.entries(state.trainings||{}).forEach(([k,t]) => {
+    if(t.data && t.data.startsWith(t0str) && t.tipo!=='template') allEvents.push({data:t.data,ora:t.ora||'',label:'🏃 '+t.titolo,sub:(t.tipo||'Allenamento')+(t.luogo?' · '+t.luogo:''),color:'#3B82F6',key:k,type:'training'});
+  });
+  Object.entries(state.tornei||{}).forEach(([tk,t]) => {
+    Object.entries(t.partite||{}).forEach(([pk,p]) => {
+      if(p.data && p.data.startsWith(t0str)) allEvents.push({data:p.data,ora:p.ora||'',label:'🏆 '+t.nome+': '+p.casa+' vs '+p.ospite,sub:p.fase||'Torneo',color:'#F59E0B',key:tk,type:'torneo'});
+    });
+    if(t.dataInizio && t.dataInizio.startsWith(t0str)) allEvents.push({data:t.dataInizio,ora:'',label:'🏆 Inizio torneo: '+t.nome,sub:'Torneo',color:'#F59E0B',key:tk,type:'torneo'});
+  });
+  Object.entries(state.news||{}).forEach(([k,n]) => {
+    if(n.dataISO && n.dataISO.startsWith(t0str)) allEvents.push({data:n.dataISO,ora:'',label:'📢 '+n.titolo,sub:n.autore||'Staff',color:'#8B5CF6',key:k,type:'news'});
   });
   allEvents.sort((a,b)=>a.data.localeCompare(b.data));
 
@@ -3241,7 +3274,7 @@ function renderCalendar() {
     return;
   }
   evEl.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Eventi del mese</div>` +
-    allEvents.map(e=>`<div onclick="window.calEventClick('${e.key}','${e.type}')" style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:var(--radius);border-left:3px solid ${e.color};background:var(--surface);margin-bottom:8px;cursor:pointer" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface)'">
+    allEvents.map(e=>`<div onclick="window.calEventClick('${e.key||''}','${e.type||''}')" style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:var(--radius);border-left:3px solid ${e.color};background:#120508;margin-bottom:8px;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(232,0,26,0.08)'" onmouseout="this.style.background='#120508'">
       <div style="min-width:48px;text-align:center"><div style="font-size:16px;font-weight:600">${new Date(e.data).getDate()}</div><div style="font-size:10px;color:var(--text3)">${new Date(e.data).toLocaleDateString('it-IT',{month:'short'})}</div></div>
       <div><div style="font-size:13px;font-weight:500">${e.label}</div><div style="font-size:12px;color:var(--text3)">${e.ora?e.ora+' · ':''}${e.sub}</div></div>
     </div>`).join('');
@@ -3249,7 +3282,8 @@ function renderCalendar() {
 
 window.calEventClick = (key, type) => {
   if(type === 'training') window.openTrainingDetail(key);
-  else window.editMatch(key);
+  else if(type === 'match') window.editMatch(key);
+  else if(type === 'torneo') window.openTorneoDetail(key);
 };
 window.calPrev = () => { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); };
 window.calNext = () => { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); };
