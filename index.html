@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ASD San Giovanni — Gestionale</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/dist/tabler-icons.min.css">
+<!-- PWA -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="San Giovanni">
+<meta name="application-name" content="San Giovanni">
+<meta name="theme-color" content="#E8001A">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1954,6 +1961,33 @@ document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click
 
 // show settings section
 window.showSettings = () => window.showSection('impostazioni', document.querySelector('.nav-item:last-child'));
+
+// PWA Install prompt
+let _deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredPrompt = e;
+  // Show install button in sidebar
+  const footer = document.querySelector('.sidebar-footer');
+  if(footer && !document.getElementById('install-btn')) {
+    const btn = document.createElement('button');
+    btn.id = 'install-btn';
+    btn.className = 'btn';
+    btn.style.cssText = 'width:100%;margin-top:8px;font-size:11px;padding:6px;background:rgba(232,0,26,0.15);border-color:rgba(232,0,26,0.3);color:#FF6680';
+    btn.innerHTML = '<i class="ti ti-download" style="font-size:13px"></i> Installa app';
+    btn.onclick = async () => {
+      if(!_deferredPrompt) return;
+      _deferredPrompt.prompt();
+      const result = await _deferredPrompt.userChoice;
+      if(result.outcome === 'accepted') {
+        btn.remove();
+        toast('App installata! 🎉');
+      }
+      _deferredPrompt = null;
+    };
+    footer.appendChild(btn);
+  }
+});
 
 // ============================================================
 // TRAINING DETAIL
