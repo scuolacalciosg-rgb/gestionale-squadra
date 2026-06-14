@@ -346,21 +346,33 @@
 
     <!-- ESERCIZI -->
     <div id="sec-esercizi" class="section" style="display:none;flex-direction:column;height:100%">
-      <div class="topbar">
-        <div><div class="page-title">Esercizi</div><div class="page-subtitle">Libreria esercizi</div></div>
-        <div class="topbar-actions" style="flex-wrap:wrap;gap:6px">
-          <select id="esercizi-filter-cat" onchange="window.renderExercises()" style="width:auto;padding:7px 10px;font-size:12px">
-            <option value="">Tutte le categorie</option>
-            <option>Riscaldamento</option>
-            <option>Coordinativo</option>
-            <option>Passaggi</option>
-            <option>Conduzione</option>
-            <option>Velocità</option>
-            <option>Tiro</option>
-            <option>Situazioni</option>
-          </select>
-          <input type="text" id="esercizi-search" placeholder="🔍 Cerca esercizio..." oninput="window.renderExercises()" style="width:180px;padding:7px 10px;font-size:12px">
-          <button class="btn btn-primary" onclick="window.openExerciseModal()"><i class="ti ti-plus"></i> Aggiungi</button>
+      <div class="topbar" style="flex-direction:column;align-items:stretch;gap:10px;padding-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div class="page-title">Esercizi</div><div class="page-subtitle">Libreria esercizi</div></div>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="esercizi-search" placeholder="🔍 Cerca..." oninput="window.renderExercises()" style="width:150px;padding:7px 10px;font-size:12px">
+            <select id="esercizi-filter-cat" onchange="window.renderExercises()" style="width:auto;padding:7px 10px;font-size:12px">
+              <option value="">Tutti i tipi</option>
+              <option>Riscaldamento</option>
+              <option>Coordinativo</option>
+              <option>Passaggi</option>
+              <option>Conduzione</option>
+              <option>Velocità</option>
+              <option>Tiro</option>
+              <option>Situazioni</option>
+            </select>
+            <button class="btn btn-primary" onclick="window.openExerciseModal()"><i class="ti ti-plus"></i> Aggiungi</button>
+          </div>
+        </div>
+        <!-- Tabs per categoria squadra -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="window.setEserciziSquadra('')" id="tab-sq-all" class="btn" style="font-size:11px;padding:5px 10px;background:rgba(232,0,26,0.15);border-color:rgba(232,0,26,0.4);color:#FF6680">Tutte</button>
+          <button onclick="window.setEserciziSquadra('Primi Calci')" id="tab-sq-pc" class="btn" style="font-size:11px;padding:5px 10px">Primi Calci</button>
+          <button onclick="window.setEserciziSquadra('Piccoli Amici')" id="tab-sq-pa" class="btn" style="font-size:11px;padding:5px 10px">Piccoli Amici</button>
+          <button onclick="window.setEserciziSquadra('Pulcini')" id="tab-sq-pu" class="btn" style="font-size:11px;padding:5px 10px">Pulcini</button>
+          <button onclick="window.setEserciziSquadra('Esordienti')" id="tab-sq-es" class="btn" style="font-size:11px;padding:5px 10px">Esordienti</button>
+          <button onclick="window.setEserciziSquadra('Giovanissimi')" id="tab-sq-gi" class="btn" style="font-size:11px;padding:5px 10px">Giovanissimi</button>
+          <button onclick="window.setEserciziSquadra('Allievi')" id="tab-sq-al" class="btn" style="font-size:11px;padding:5px 10px">Allievi</button>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;padding:24px"><div class="ex-grid" id="esercizi-grid"></div></div>
@@ -665,8 +677,22 @@
     </div>
     <div class="form-group"><label class="form-label">Nome *</label><input type="text" id="e-nome" placeholder="Es. Torello 5v2"></div>
     <div class="form-grid2">
-      <div class="form-group"><label class="form-label">Categoria</label><select id="e-cat"><option>Riscaldamento</option><option>Coordinativo</option><option>Passaggi</option><option>Conduzione</option><option>Velocità</option><option>Tiro</option><option>Situazioni</option></select></div>
+      <div class="form-group"><label class="form-label">Categoria esercizio</label><select id="e-cat"><option>Riscaldamento</option><option>Coordinativo</option><option>Passaggi</option><option>Conduzione</option><option>Velocità</option><option>Tiro</option><option>Situazioni</option></select></div>
       <div class="form-group"><label class="form-label">Durata (min)</label><input type="number" id="e-dur" min="5" value="15"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Adatto per categoria squadra</label>
+      <select id="e-squadra-cat">
+        <option value="">Tutte le categorie</option>
+        <option>Primi Calci</option>
+        <option>Piccoli Amici</option>
+        <option>Pulcini</option>
+        <option>Esordienti</option>
+        <option>Giovanissimi</option>
+        <option>Allievi</option>
+        <option>Juniores</option>
+        <option>Prima Squadra</option>
+      </select>
     </div>
     <div class="form-group"><label class="form-label">Numero giocatori</label><input type="text" id="e-players" placeholder="Es. 10-14"></div>
     <div class="form-group"><label class="form-label">Descrizione</label><textarea id="e-desc" placeholder="Come si svolge..." style="min-height:100px"></textarea></div>
@@ -1309,13 +1335,34 @@ window.renderPresenze = function() {
 }
 
 
+window._filterSquadraCat = '';
+window.setEserciziSquadra = sq => {
+  window._filterSquadraCat = sq;
+  // Update tab styles
+  const tabs = {
+    '': 'tab-sq-all', 'Primi Calci': 'tab-sq-pc', 'Piccoli Amici': 'tab-sq-pa',
+    'Pulcini': 'tab-sq-pu', 'Esordienti': 'tab-sq-es', 'Giovanissimi': 'tab-sq-gi', 'Allievi': 'tab-sq-al'
+  };
+  Object.entries(tabs).forEach(([val, id]) => {
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    const isActive = val === sq;
+    btn.style.background = isActive ? 'rgba(232,0,26,0.15)' : '';
+    btn.style.borderColor = isActive ? 'rgba(232,0,26,0.4)' : '';
+    btn.style.color = isActive ? '#FF6680' : '';
+  });
+  renderExercises();
+};
+
 function renderExercises() {
   const filterCat = (document.getElementById('esercizi-filter-cat')||{}).value || '';
   const search = ((document.getElementById('esercizi-search')||{}).value || '').toLowerCase();
+  const filterSquadra = window._filterSquadraCat || '';
   let exercises = Object.entries(state.exercises||{}).map(([k,v])=>({...v,_key:k}));
   // Apply filters
   if(filterCat) exercises = exercises.filter(e=>e.cat===filterCat);
   if(search) exercises = exercises.filter(e=>(e.nome||'').toLowerCase().includes(search)||(e.desc||'').toLowerCase().includes(search));
+  if(filterSquadra) exercises = exercises.filter(e=>!e.squadraCat || e.squadraCat==='' || e.squadraCat===filterSquadra);
   const el = document.getElementById('esercizi-grid');
   if(!exercises.length){
     el.innerHTML=`<div class="empty" style="grid-column:1/-1"><i class="ti ti-barbell"></i>${search||filterCat?'Nessun esercizio trovato.':'Nessun esercizio.'}</div>`;
@@ -1355,6 +1402,7 @@ function renderExercises() {
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <span class="badge badge-gray"><i class="ti ti-clock" style="font-size:11px;vertical-align:-1px"></i> ${e.dur}min</span>
         ${e.players?`<span class="badge badge-gray"><i class="ti ti-users" style="font-size:11px;vertical-align:-1px"></i> ${e.players}</span>`:''}
+        ${e.squadraCat?`<span class="badge badge-blue" style="font-size:10px">${e.squadraCat}</span>`:''}
       </div>
     </div>`).join('');
   });
@@ -1856,6 +1904,7 @@ window.openExerciseModal = () => {
   document.getElementById('e-foto-preview').innerHTML = '📷';
   window._exercisePhotoData = null;
   document.getElementById('e-foto-input').value = '';
+  const sqEl = document.getElementById('e-squadra-cat'); if(sqEl) sqEl.value = e.squadraCat||'';
   openModal('modal-exercise');
 };
 
@@ -1879,6 +1928,7 @@ window.editExercise = key => {
     window._exercisePhotoData = null;
   }
   document.getElementById('e-foto-input').value = '';
+  const sqEl = document.getElementById('e-squadra-cat'); if(sqEl) sqEl.value = e.squadraCat||'';
   openModal('modal-exercise');
 };
 
@@ -1888,6 +1938,7 @@ window.saveExercise = () => {
   const key = document.getElementById('e-edit-key').value;
   const data_obj = {
     nome, cat:document.getElementById('e-cat').value,
+    squadraCat:document.getElementById('e-squadra-cat').value||'',
     dur:document.getElementById('e-dur').value||15,
     players:document.getElementById('e-players').value,
     desc:document.getElementById('e-desc').value,
