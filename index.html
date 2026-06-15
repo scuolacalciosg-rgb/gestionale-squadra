@@ -1904,8 +1904,8 @@ window.openExerciseModal = () => {
   document.getElementById('e-foto-preview').innerHTML = '📷';
   window._exercisePhotoData = null;
   document.getElementById('e-foto-input').value = '';
-  const sqEl = document.getElementById('e-squadra-cat'); if(sqEl) sqEl.value = e.squadraCat||'';
-  openModal('modal-exercise');
+  const sqEl = document.getElementById('e-squadra-cat'); if(sqEl) sqEl.value = '';
+  window.openModal('modal-exercise');
 };
 
 window.editExercise = key => {
@@ -1928,8 +1928,8 @@ window.editExercise = key => {
     window._exercisePhotoData = null;
   }
   document.getElementById('e-foto-input').value = '';
-  const sqEl = document.getElementById('e-squadra-cat'); if(sqEl) sqEl.value = e.squadraCat||'';
-  openModal('modal-exercise');
+  const sqEl = document.getElementById('e-squadra-cat'); if(sqEl) sqEl.value = '';
+  window.openModal('modal-exercise');
 };
 
 window.saveExercise = () => {
