@@ -1850,12 +1850,31 @@ window.renderExPicker = () => {
   const el = document.getElementById('ex-picker-list');
   if(!filtered.length) { el.innerHTML='<div style="font-size:13px;color:var(--text3)">Nessun esercizio trovato</div>'; return; }
   const catColor={Riscaldamento:'badge-red',Coordinativo:'badge-amber',Passaggi:'badge-blue',Conduzione:'badge-green',Velocità:'badge-red',Tiro:'badge-amber',Situazioni:'badge-blue'};
-  el.innerHTML = filtered.map(e=>`
-    <div onclick="window.pickExercise('${e._key}')" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;display:flex;align-items:center;gap:10px" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
-      <div style="flex:1"><div style="font-size:13px;font-weight:500">${e.nome}</div><div style="font-size:11px;color:var(--text3)">${e.desc?e.desc.slice(0,60)+'...':''}</div></div>
-      <span class="badge ${catColor[e.cat]||'badge-gray'}" style="font-size:11px">${e.cat}</span>
-      <span class="badge badge-gray" style="font-size:11px">${e.dur}min</span>
-    </div>`).join('');
+  const catOrder = ['Riscaldamento','Coordinativo','Passaggi','Conduzione','Velocità','Tiro','Situazioni'];
+  // Group by category
+  const groups = {};
+  filtered.forEach(e => {
+    const cat = e.cat||'Altro';
+    if(!groups[cat]) groups[cat]=[];
+    groups[cat].push(e);
+  });
+  const sortedCats = [...new Set([...catOrder, ...Object.keys(groups)])].filter(c=>groups[c]);
+  let html = '';
+  sortedCats.forEach(cat => {
+    html += `<div style="font-size:10px;font-weight:700;color:rgba(232,0,26,0.7);text-transform:uppercase;letter-spacing:1px;padding:8px 4px 4px;margin-top:4px">
+      <span class="badge ${catColor[cat]||'badge-gray'}" style="font-size:11px">${cat}</span>
+      <span style="color:var(--text3);font-weight:400;margin-left:6px">${groups[cat].length} esercizi</span>
+    </div>`;
+    html += groups[cat].map(e=>`
+      <div onclick="window.pickExercise('${e._key}')" style="padding:10px;border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:4px;background:rgba(255,255,255,0.03)" onmouseover="this.style.background='rgba(232,0,26,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">${e.nome}</div>
+          <div style="font-size:11px;color:var(--text3)">${e.desc?e.desc.slice(0,70)+'...':''}</div>
+        </div>
+        <span class="badge badge-gray" style="font-size:11px">${e.dur}min</span>
+      </div>`).join('');
+  });
+  el.innerHTML = html;
 };
 
 window.pickExercise = key => {
