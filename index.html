@@ -1606,12 +1606,36 @@ function renderDashboardAlerts() {
     }
   }
 
+  // Check compleanni
+  const oggi = today();
+  const todayMMDD = oggi.slice(5); // MM-DD
+  players.forEach(p => {
+    if(!p.dataNascita) return;
+    const birthMMDD = p.dataNascita.slice(5); // MM-DD
+    const birthDay = new Date(p.dataNascita);
+    const age = new Date().getFullYear() - birthDay.getFullYear();
+    if(birthMMDD === todayMMDD) {
+      alerts.unshift({type:'birthday', icon:'ti-cake', text:`🎂 Compleanno oggi: <b>${p.nome}</b> compie ${age} anni!`});
+    } else {
+      // Check next 7 days
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      const thisYearBirth = new Date(new Date().getFullYear() + '-' + birthMMDD);
+      const todayDate = new Date(oggi);
+      if(thisYearBirth >= todayDate && thisYearBirth <= nextWeek) {
+        const daysTo = Math.ceil((thisYearBirth - todayDate) / (1000*60*60*24));
+        alerts.push({type:'birthday', icon:'ti-cake', text:`🎂 Compleanno tra ${daysTo} giorni: <b>${p.nome}</b> compie ${age} anni`});
+      }
+    }
+  });
+
   if(!alerts.length) { el.innerHTML=''; return; }
 
   const colors = {
     danger: {bg:'rgba(232,0,26,0.1)', border:'rgba(232,0,26,0.3)', text:'#FF6680'},
     warning: {bg:'rgba(245,158,11,0.1)', border:'rgba(245,158,11,0.3)', text:'#FCD34D'},
-    info: {bg:'rgba(59,130,246,0.1)', border:'rgba(59,130,246,0.3)', text:'#93C5FD'}
+    info: {bg:'rgba(59,130,246,0.1)', border:'rgba(59,130,246,0.3)', text:'#93C5FD'},
+    birthday: {bg:'rgba(168,85,247,0.1)', border:'rgba(168,85,247,0.3)', text:'#D8B4FE'}
   };
 
   el.innerHTML = alerts.map(a => {
@@ -1636,7 +1660,17 @@ function renderAll() {
 }
 
 // CRUD
-window._del = (path, key) => { if(!confirm('Eliminare?')) return; remove(ref(db,`${path}/${key}`)); toast('Eliminato'); };
+window._del = (path, key) => {
+  const labels = {
+    'players':'questo giocatore','matches':'questa partita','trainings':'questo allenamento',
+    'exercises':'questo esercizio','news':'questa comunicazione','gallery':'questo elemento',
+    'obiettivi':'questo obiettivo','rapporti':'questo rapporto','tornei':'questo torneo'
+  };
+  const label = labels[path.split('/')[0]] || 'questo elemento';
+  if(!confirm('Sei sicuro di voler eliminare ' + label + '?\nQuesta operazione non può essere annullata.')) return;
+  remove(ref(db, path+'/'+key));
+  toast('Eliminato!');
+};
 window._togglePresence = (evKey, pKey) => {
   const cur = ((state.presenze||{})[evKey]||{})[pKey]||'none';
   const next = cur==='none'?'present':cur==='present'?'absent':'none';
