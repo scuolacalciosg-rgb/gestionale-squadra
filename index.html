@@ -151,7 +151,7 @@
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { text-align: left; padding: 10px 14px; color: rgba(232,0,26,0.7); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(232,0,26,0.1); }
-  td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  td { padding: 14px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: rgba(232,0,26,0.05); }
 
@@ -163,7 +163,7 @@
   .badge-red { background: var(--red-light); color: var(--red); }
   .badge-gray { background: var(--surface2); color: var(--text2); }
 
-  .avatar { width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; background: rgba(232,0,26,0.15); color: #FF6680; border: 1px solid rgba(232,0,26,0.2); margin-right: 10px; flex-shrink: 0; }
+  .avatar { width: 48px; height: 48px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: rgba(232,0,26,0.15); color: #FF6680; border: 2px solid rgba(232,0,26,0.3); margin-right: 12px; flex-shrink: 0; }
   .player-cell { display: flex; align-items: center; }
 
   .match-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
@@ -1306,8 +1306,8 @@ function renderRosa() {
         ? `<div class="avatar" style="background:none;padding:0"><img src="${p.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`
         : `<div class="avatar">${initials(p.nome)}</div>`}
       <div>
-        <div style="font-weight:500;cursor:pointer;color:var(--green)" onclick='window.openPlayerDetail(${JSON.stringify(p).replace(/'/g,"\'")})'>${p.nome}</div>
-        <div style="font-size:11px;color:var(--text3)">${p.categoria||''}${p.dataNascita?' · '+fmtDate(p.dataNascita):(p.anno?' · '+p.anno:'')}</div>
+        <div style="font-weight:600;cursor:pointer;color:var(--green);font-size:14px" onclick='window.openPlayerDetail(${JSON.stringify(p).replace(/'/g,"\'")})'>${p.nome}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">${p.categoria||''}${p.dataNascita?' · '+fmtDate(p.dataNascita):(p.anno?' · '+p.anno:'')}</div>
       </div>
     </div></td>
     <td><span class="badge ${ruoloBadge(p.ruolo)}">${p.ruolo}</span></td>
