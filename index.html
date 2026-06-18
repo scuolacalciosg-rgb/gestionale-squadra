@@ -576,7 +576,7 @@
             <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Stagione corrente</div>
             <div id="current-stagione-label" style="font-size:15px;font-weight:600"></div>
           </div>
-          <button class="btn btn-primary" onclick="window.openModal('modal-chiudi-stagione')" style="margin-bottom:10px"><i class="ti ti-archive"></i> Archivia e inizia nuova stagione</button>
+          <button class="btn btn-primary" onclick="window.openChiudiStagioneModal()" style="margin-bottom:10px"><i class="ti ti-archive"></i> Archivia e inizia nuova stagione</button>
           <div id="stagioni-archivio-list" style="margin-top:16px"></div>
         </div>
       </div>
@@ -1030,19 +1030,23 @@
 
 <!-- CHIUDI STAGIONE MODAL -->
 <div class="modal-overlay" id="modal-chiudi-stagione">
-  <div class="modal" style="width:440px">
+  <div class="modal" style="width:520px;max-width:96vw;max-height:90vh;overflow-y:auto">
     <div class="modal-title">Archivia stagione</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">Stai per archiviare la stagione corrente. Le statistiche (gol, presenze, partite) verranno salvate nell'archivio. I giocatori rimarranno ma i contatori verranno azzerati.</p>
-    <div style="background:var(--amber-light);border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:13px;color:var(--amber-dark)">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Le statistiche, partite e rapporti verranno salvati nell'archivio. Scegli quali giocatori portare nella nuova stagione.</p>
+    <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:13px;color:#FCD34D">
       <i class="ti ti-alert-triangle" style="vertical-align:-2px"></i> Questa operazione non può essere annullata.
     </div>
     <div class="form-group">
       <label class="form-label">Nome nuova stagione</label>
-      <input type="text" id="nuova-stagione-input" placeholder="Es. 2025/26">
+      <input type="text" id="nuova-stagione-input" placeholder="Es. 2026/27">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Giocatori — seleziona chi portare avanti</label>
+      <div id="chiudi-stagione-players" style="max-height:280px;overflow-y:auto;padding-right:4px"></div>
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="window.closeModal('modal-chiudi-stagione')">Annulla</button>
-      <button class="btn btn-primary" onclick="window.archiviaStagione()"><i class="ti ti-archive"></i> Archivia</button>
+      <button class="btn btn-primary" onclick="window.archiviaStagione()"><i class="ti ti-archive"></i> Archivia stagione</button>
     </div>
   </div>
 </div>
@@ -3357,6 +3361,33 @@ function renderStagioniArchivio() {
   }, {onlyOnce: true});
 }
 
+// Store selected players for season close
+window._playersToKeep = {};
+
+window.openChiudiStagioneModal = () => {
+  // Populate player selection
+  const players = Object.entries(state.players||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>a.nome.localeCompare(b.nome));
+  window._playersToKeep = {};
+  players.forEach(p => { window._playersToKeep[p._key] = true; }); // default: keep all
+
+  const listEl = document.getElementById('chiudi-stagione-players');
+  if(listEl) {
+    listEl.innerHTML = players.map(p => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius);background:var(--surface2);margin-bottom:6px">
+        ${p.foto?`<img src="${p.foto}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">`:`<div style="width:36px;height:36px;border-radius:50%;background:rgba(232,0,26,0.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#FF6680">${(p.nome||'?').split(' ').map(w=>w[0]).join('').slice(0,2)}</div>`}
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">${p.nome}</div>
+          <div style="font-size:11px;color:var(--text3)">${p.ruolo||''} ${p.numero?'· #'+p.numero:''}</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px">
+          <input type="checkbox" id="keep-${p._key}" checked onchange="window._playersToKeep['${p._key}']=this.checked" style="width:16px;height:16px;accent-color:#E8001A">
+          Porta avanti
+        </label>
+      </div>`).join('');
+  }
+  window.openModal('modal-chiudi-stagione');
+};
+
 window.archiviaStagione = () => {
   const nuovaNome = document.getElementById('nuova-stagione-input').value.trim();
   if(!nuovaNome) { alert('Inserisci il nome della nuova stagione'); return; }
@@ -3364,69 +3395,73 @@ window.archiviaStagione = () => {
   const stagioneCorrente = state.settings?.stagione || 'Stagione';
   const oggi = new Date().toLocaleDateString('it-IT');
 
-  // Build archive data
   const players = Object.entries(state.players||{}).map(([k,v])=>({...v,_key:k}));
   const matches = Object.values(state.matches||{});
-  const presenze = state.presenze||{};
 
   // Calculate stats per player
   const playerStats = {};
   players.forEach(p => {
     const st = calcPlayerStats(p._key);
     playerStats[p._key] = {
-      nome: p.nome,
-      ruolo: p.ruolo||'',
-      numero: p.numero||'',
-      foto: p.foto||'',
-      gol: p.gol||0,
-      assist: p.assist||0,
-      presAllenamenti: st.presAll,
-      presPartite: st.presPartite,
-      percPresenze: st.percAll,
-      totAllenamenti: st.totAll,
-      totPartite: st.totPartite,
+      nome: p.nome, ruolo: p.ruolo||'', numero: p.numero||'', foto: p.foto||'',
+      gol: p.gol||0, assist: p.assist||0,
+      presAllenamenti: st.presAll, presPartite: st.presPartite,
+      percPresenze: st.percAll, totAllenamenti: st.totAll, totPartite: st.totPartite,
     };
+  });
+
+  // Collect rapporti per player
+  const rapportiArchivio = {};
+  players.forEach(p => {
+    const raps = Object.values(state.rapporti||{}).filter(r=>r.giocatoreKey===p._key);
+    if(raps.length) rapportiArchivio[p._key] = raps;
   });
 
   const wins = matches.filter(m=>m.gn>m.ga).length;
   const draws = matches.filter(m=>m.gn===m.ga).length;
   const losses = matches.filter(m=>m.gn<m.ga).length;
-  const golFatti = matches.reduce((s,m)=>s+(m.gn||0),0);
-  const golSubiti = matches.reduce((s,m)=>s+(m.ga||0),0);
 
   const archivio = {
     nome: stagioneCorrente,
     archiviataIl: oggi,
     nGiocatori: players.length,
     nPartite: matches.length,
-    vittorie: wins,
-    pareggi: draws,
-    sconfitte: losses,
-    golFatti,
-    golSubiti,
+    vittorie: wins, pareggi: draws, sconfitte: losses,
+    golFatti: matches.reduce((s,m)=>s+(m.gn||0),0),
+    golSubiti: matches.reduce((s,m)=>s+(m.ga||0),0),
     giocatori: playerStats,
     partite: state.matches||{},
+    rapporti: rapportiArchivio,
+    obiettivi: state.obiettivi||{}
   };
 
-  // Save to Firebase
   push(ref(db,'stagioni'), archivio).then(() => {
-    // Reset current season data
     const updates = {};
-    // Reset player stats
+    const toKeep = window._playersToKeep||{};
+
+    // For players NOT kept: remove from active roster
     players.forEach(p => {
-      updates[`players/${p._key}/gol`] = 0;
-      updates[`players/${p._key}/assist`] = 0;
+      if(!toKeep[p._key]) {
+        updates[`players/${p._key}`] = null; // remove player
+      } else {
+        // Reset stats for kept players
+        updates[`players/${p._key}/gol`] = 0;
+        updates[`players/${p._key}/assist`] = 0;
+      }
     });
-    // Clear matches, trainings, presenze
+
+    // Clear season data
     updates['matches'] = null;
     updates['trainings'] = null;
     updates['presenze'] = null;
-    // Update season name
+    updates['rapporti'] = null;
+    updates['obiettivi'] = null;
     updates['settings/stagione'] = nuovaNome;
 
     update(ref(db), updates).then(() => {
-      closeModal('modal-chiudi-stagione');
+      window.closeModal('modal-chiudi-stagione');
       document.getElementById('nuova-stagione-input').value = '';
+      window._playersToKeep = {};
       toast('Stagione archiviata! Buona nuova stagione! 🎉');
     });
   });
@@ -3473,6 +3508,16 @@ window.openStagioneDetail = key => {
             <div style="font-size:18px;font-weight:700;color:var(--green)">⚽ ${g.gol}</div>
           </div>`).join('') || '<div style="padding:14px;font-size:13px;color:var(--text3)">Nessun gol registrato</div>'}
       </div>
+
+      <!-- Rapporti archivio -->
+      ${s.rapporti && Object.keys(s.rapporti).length ? `
+      <div style="font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;margin-top:20px">📝 Rapporti archiviati</div>
+      <div style="font-size:13px;color:var(--text3);padding:10px;background:var(--surface2);border-radius:var(--radius);margin-bottom:16px">
+        ${Object.entries(s.rapporti).map(([pKey,raps])=>{
+          const g = (s.giocatori||{})[pKey];
+          return `<div style="margin-bottom:8px"><b style="color:var(--text)">${g?g.nome:pKey}</b>: ${raps.length} rapporti</div>`;
+        }).join('')}
+      </div>` : ''}
 
       <!-- Presenze giocatori -->
       <div style="font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Presenze giocatori</div>
