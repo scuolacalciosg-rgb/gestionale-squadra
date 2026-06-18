@@ -1120,6 +1120,55 @@
 <div class="toast" id="toast"></div>
 
 <!-- FIREBASE -->
+<script>
+// LOGIN - separate from ES module so it's globally accessible
+window.checkLogin = function() {
+  var pwd = document.getElementById('login-password').value;
+  var errEl = document.getElementById('login-error');
+  var stored = 'sangiovanni';
+  try { stored = localStorage.getItem('sg_password') || 'sangiovanni'; } catch(e){}
+  if(pwd === stored) {
+    try { sessionStorage.setItem('sg_auth','1'); } catch(e){}
+    document.getElementById('login-screen').style.display = 'none';
+    errEl.style.display = 'none';
+  } else {
+    errEl.style.display = 'block';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
+    var input = document.getElementById('login-password');
+    input.style.borderColor = '#E8001A';
+    setTimeout(function(){ input.style.borderColor='rgba(232,0,26,0.3)'; }, 500);
+  }
+};
+
+window.changePassword = function() {
+  var curr = document.getElementById('set-curr-password').value;
+  var newp = document.getElementById('set-new-password').value;
+  var stored = 'sangiovanni';
+  try { stored = localStorage.getItem('sg_password') || 'sangiovanni'; } catch(e){}
+  if(curr !== stored) { alert('Password attuale non corretta'); return; }
+  if(newp.length < 4) { alert('La nuova password deve avere almeno 4 caratteri'); return; }
+  try { localStorage.setItem('sg_password', newp); } catch(e){}
+  alert('Password cambiata con successo!');
+  document.getElementById('set-curr-password').value = '';
+  document.getElementById('set-new-password').value = '';
+};
+
+// Check session on load
+document.addEventListener('DOMContentLoaded', function() {
+  var auth = null;
+  try { auth = sessionStorage.getItem('sg_auth'); } catch(e){}
+  if(auth === '1') {
+    document.getElementById('login-screen').style.display = 'none';
+  } else {
+    setTimeout(function() {
+      var el = document.getElementById('login-password');
+      if(el) el.focus();
+    }, 100);
+  }
+});
+</script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, push, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
