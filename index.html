@@ -3039,28 +3039,60 @@ window.analizzaRapportiIA = async pKey => {
     'Note: '+(r.note||'nessuna')
   )).join('\n---\n');
 
-  const prompt = `Sei un esperto allenatore di calcio giovanile. Analizza i seguenti rapporti del giocatore ${player.nome} (${player.ruolo||'ruolo non specificato'}, categoria ${player.categoria||'non specificata'}) e fornisci:
-1. **Punti di forza** — cosa sta facendo bene
-2. **Aree critiche** — dove deve migliorare con priorità
-3. **Piano di lavoro** — 3 esercizi o attività specifiche per migliorare le aree critiche
-4. **Progressione** — se noti miglioramenti o regressioni nel tempo
+  const systemMsg = 'Sei un allenatore esperto di calcio giovanile. Il tuo compito e analizzare rapporti scritti dallo staff e produrre SEMPRE una risposta strutturata e completa con sezioni numerate. Non fare commenti generici, non ringraziare, non chiedere altro: vai diretto al contenuto richiesto. Scrivi sempre in italiano.';
 
-Rapporti:
-${testo}
-
-Rispondi in italiano, sii specifico e pratico.`;
+  const prompt = 'Analizza questi rapporti del giocatore ' + player.nome + ' (' + (player.ruolo||'ruolo non specificato') + ', categoria ' + (player.categoria||'non specificata') + ').\n\n' +
+    'RAPPORTI:\n' + testo + '\n\n' +
+    'Scrivi la tua analisi seguendo ESATTAMENTE questa struttura, con contenuto specifico per ogni punto (minimo 2-3 frasi per sezione):\n\n' +
+    '1) PUNTI DI FORZA\n' +
+    '[Scrivi qui cosa il giocatore fa bene, basandoti sui rapporti]\n\n' +
+    '2) AREE CRITICHE\n' +
+    '[Scrivi qui cosa deve migliorare, in ordine di priorita]\n\n' +
+    '3) PIANO DI LAVORO\n' +
+    '[Scrivi qui 3 esercizi o attivita specifiche per migliorare]\n\n' +
+    '4) PROGRESSIONE\n' +
+    '[Scrivi qui se noti miglioramenti o peggioramenti nel tempo confrontando i rapporti]\n\n' +
+    'Non aggiungere introduzioni, commenti o frasi di cortesia. Vai dritto al contenuto.';
 
   try {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._iaApiKey,'HTTP-Referer':'https://scuolacalciosg-rgb.github.io','X-Title':'ASD San Giovanni'},
-      body:JSON.stringify({model:'openrouter/auto',messages:[{role:'user',content:prompt}],max_tokens:800})
+      body:JSON.stringify({
+        model:'openrouter/auto',
+        messages:[
+          {role:'system',content:systemMsg},
+          {role:'user',content:prompt}
+        ],
+        max_tokens:1200,
+        temperature:0.6
+      })
     });
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content||'Nessuna risposta.';
-    el.innerHTML=`<div style="background:rgba(232,0,26,0.06);border:1px solid rgba(232,0,26,0.15);border-radius:var(--radius);padding:16px;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap">${reply}</div>`;
+    let reply = data.choices?.[0]?.message?.content||'';
+    // Retry with more explicit instruction if response is too short
+    if(reply.trim().length < 80) {
+      const retryResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._iaApiKey,'HTTP-Referer':'https://scuolacalciosg-rgb.github.io','X-Title':'ASD San Giovanni'},
+        body:JSON.stringify({
+          model:'openrouter/auto',
+          messages:[
+            {role:'system',content:systemMsg},
+            {role:'user',content:prompt},
+            {role:'assistant',content:reply},
+            {role:'user',content:'La tua risposta e troppo breve e non segue la struttura richiesta. Riscrivi una analisi COMPLETA con tutte le 4 sezioni numerate, ognuna con contenuto specifico di almeno 2-3 frasi.'}
+          ],
+          max_tokens:1200,
+          temperature:0.6
+        })
+      });
+      const retryData = await retryResponse.json();
+      reply = retryData.choices?.[0]?.message?.content || reply || 'Non sono riuscito a generare un\'analisi completa. Riprova o aggiungi più dettagli nei rapporti.';
+    }
+    el.innerHTML='<div style="background:rgba(232,0,26,0.06);border:1px solid rgba(232,0,26,0.15);border-radius:var(--radius);padding:16px;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap">'+reply+'</div>';
   } catch(err) {
-    el.innerHTML=`<div style="font-size:13px;color:#E8001A;padding:10px">Errore: ${err.message}</div>`;
+    el.innerHTML='<div style="font-size:13px;color:#E8001A;padding:10px">Errore: '+err.message+'</div>';
   }
 };
 
