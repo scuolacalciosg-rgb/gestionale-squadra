@@ -3482,13 +3482,18 @@ window.archiviaStagione = () => {
       }
     });
 
-    // Clear season data
+    // Clear season data (but KEEP rapporti for players carried forward)
     updates['matches'] = null;
     updates['trainings'] = null;
     updates['presenze'] = null;
-    updates['rapporti'] = null;
     updates['obiettivi'] = null;
     updates['settings/stagione'] = nuovaNome;
+    // Remove only rapporti of players NOT kept
+    Object.entries(state.rapporti||{}).forEach(([rk, r]) => {
+      if(!toKeep[r.giocatoreKey]) {
+        updates['rapporti/'+rk] = null;
+      }
+    });
 
     update(ref(db), updates).then(() => {
       window.closeModal('modal-chiudi-stagione');
