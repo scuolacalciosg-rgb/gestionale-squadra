@@ -1059,7 +1059,10 @@
         <div id="sd2-titolo" style="font-size:20px;font-weight:600"></div>
         <div id="sd2-subtitle" style="font-size:13px;color:var(--text3);margin-top:2px"></div>
       </div>
-      <button class="delete-btn" onclick="window.closeModal('modal-stagione-detail')" style="font-size:22px"><i class="ti ti-x"></i></button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="sd2-restore-btn" style="font-size:12px;padding:6px 12px"><i class="ti ti-rotate"></i> Ripristina rapporti</button>
+        <button class="delete-btn" onclick="window.closeModal('modal-stagione-detail')" style="font-size:22px"><i class="ti ti-x"></i></button>
+      </div>
     </div>
     <div id="sd2-content"></div>
   </div>
@@ -3589,8 +3592,47 @@ window.openStagioneDetail = key => {
         </table>
       </div>`;
 
-    openModal('modal-stagione-detail');
+    // Set up restore rapporti button
+    document.getElementById('sd2-restore-btn').onclick = () => window.ripristinaRapportiArchivio(key, s);
+
+    window.openModal('modal-stagione-detail');
   }, {onlyOnce: true});
+};
+
+window.ripristinaRapportiArchivio = (stagioneKey, stagioneData) => {
+  const rapportiArchivio = stagioneData.rapporti || {};
+  if(!Object.keys(rapportiArchivio).length) {
+    toast('Nessun rapporto da ripristinare in questa stagione.');
+    return;
+  }
+  const currentPlayers = Object.keys(state.players||{});
+  let restoredCount = 0;
+  let skippedCount = 0;
+  const updates = {};
+
+  Object.entries(rapportiArchivio).forEach(([pKey, raps]) => {
+    // Only restore for players still in current roster
+    if(!currentPlayers.includes(pKey)) { skippedCount++; return; }
+    const rapsArr = Array.isArray(raps) ? raps : Object.values(raps||{});
+    rapsArr.forEach(r => {
+      // Generate a new key for each restored rapporto
+      const newKey = pKey + '_' + (r.ts || Date.now()) + '_' + Math.random().toString(36).slice(2,7);
+      updates['rapporti/'+newKey] = r;
+      restoredCount++;
+    });
+  });
+
+  if(!restoredCount) {
+    toast('Nessun giocatore di questa stagione è ancora in rosa.');
+    return;
+  }
+
+  if(!confirm('Ripristinare ' + restoredCount + ' rapporti per i giocatori ancora in rosa?')) return;
+
+  update(ref(db), updates).then(() => {
+    toast(restoredCount + ' rapporti ripristinati!' + (skippedCount ? ' (' + skippedCount + ' giocatori non più in rosa ignorati)' : ''));
+    window.closeModal('modal-stagione-detail');
+  });
 };
 
 // ============================================================
